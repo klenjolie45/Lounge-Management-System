@@ -1,0 +1,6 @@
+{
+  "name": "Lounge Management system",
+  "description": "Cloud-based point of sale, recipe-linked real-time inventory, analytics, end of day reconciliation, and customer management system for lounges and bistros with offline synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

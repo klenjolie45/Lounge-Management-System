@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0F172A;
+    color: #F8FAFC;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, .font-display {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  .font-mono, .tabular-nums {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Theme overrides */
+html.theme-obsidian body {
+  background-color: #050811;
+  color: #F8FAFC;
+}
+
+html.theme-warm-bistro body {
+  background-color: #181512;
+  color: #FEF3C7;
+}
+
+html.theme-light-ivory body {
+  background-color: #F8F9FA;
+  color: #0F172A;
+}
+
+html.theme-light-ivory .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html.theme-light-ivory main .text-slate-100,
+html.theme-light-ivory main .text-slate-200 {
+  color: #0F172A !important;
+}
+
+html.theme-light-ivory main .text-slate-300,
+html.theme-light-ivory main .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.theme-light-ivory main input,
+html.theme-light-ivory main select,
+html.theme-light-ivory main textarea {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* White and Wine-Pink Theme (Light) */
+html.theme-light-wine-pink body {
+  background-color: #FFF5F7;
+  color: #4C0519;
+}
+
+html.theme-light-wine-pink .bg-slate-950,
+html.theme-light-wine-pink aside,
+html.theme-light-wine-pink header {
+  background-color: #FFF0F4 !important;
+  border-color: #FBCFE8 !important;
+  color: #4C0519 !important;
+}
+
+html.theme-light-wine-pink .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border-color: #FCE7F3 !important;
+  color: #4C0519 !important;
+  box-shadow: 0 1px 3px rgba(190, 24, 93, 0.05);
+}
+
+html.theme-light-wine-pink .bg-slate-950\/80,
+html.theme-light-wine-pink .bg-slate-900\/60 {
+  background-color: rgba(255, 240, 244, 0.9) !important;
+  border-color: #FBCFE8 !important;
+}
+
+html.theme-light-wine-pink .border-slate-800,
+html.theme-light-wine-pink .border-slate-800\/80,
+html.theme-light-wine-pink .border-slate-700 {
+  border-color: #FCE7F3 !important;
+}
+
+html.theme-light-wine-pink .text-slate-100,
+html.theme-light-wine-pink .text-slate-200 {
+  color: #4C0519 !important;
+}
+
+html.theme-light-wine-pink .text-slate-300,
+html.theme-light-wine-pink .text-slate-400 {
+  color: #831843 !important;
+}
+
+html.theme-light-wine-pink .text-slate-500 {
+  color: #9D174D !important;
+}
+
+html.theme-light-wine-pink input,
+html.theme-light-wine-pink select,
+html.theme-light-wine-pink textarea {
+  background-color: #FFFFFF !important;
+  border-color: #FBCFE8 !important;
+  color: #4C0519 !important;
+}
+
+/* White and Navy Blue Theme (Light) */
+html.theme-light-navy-blue body {
+  background-color: #F8FAFC;
+  color: #0F172A;
+}
+
+html.theme-light-navy-blue .bg-slate-950,
+html.theme-light-navy-blue aside,
+html.theme-light-navy-blue header {
+  background-color: #0B192C !important;
+  border-color: #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+html.theme-light-navy-blue .bg-slate-900 {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+html.theme-light-navy-blue .bg-slate-950\/80,
+html.theme-light-navy-blue .bg-slate-900\/60 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #E2E8F0 !important;
+}
+
+html.theme-light-navy-blue .border-slate-800,
+html.theme-light-navy-blue .border-slate-800\/80,
+html.theme-light-navy-blue .border-slate-700 {
+  border-color: #E2E8F0 !important;
+}
+
+html.theme-light-navy-blue main .text-slate-100,
+html.theme-light-navy-blue main .text-slate-200 {
+  color: #0F172A !important;
+}
+
+html.theme-light-navy-blue main .text-slate-300,
+html.theme-light-navy-blue main .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.theme-light-navy-blue main input,
+html.theme-light-navy-blue main select,
+html.theme-light-navy-blue main textarea {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+/* Print Styles for Receipts, Reports, and EOD slips */
+@media print {
+  @page {
+    margin: 8mm;
+    size: auto;
+  }
+
+  body {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+  }
+
+  /* Hide app shell, sidebar, modals background */
+  aside,
+  header,
+  footer,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+}
+
+
