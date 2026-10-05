@@ -15,6 +15,7 @@ import {
   CustomerTier,
   SyncOperationType,
 } from '../types/lounge';
+import { formatCurrency } from '../utils/formatters';
 
 interface CustomerCrmViewProps {
   state: CloudSystemState;
@@ -112,7 +113,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
         customerId: cust.id,
         updates: { houseAccountBalance: 0 },
       },
-      `Settled VIP House Account balance ($${cust.houseAccountBalance.toFixed(2)}) for ${cust.name}`
+      `Settled VIP House Account balance (${formatCurrency(cust.houseAccountBalance, state.settings?.currency)}) for ${cust.name}`
     );
   };
 
@@ -150,7 +151,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Tracked Member Lifetime Spend</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-amber-400">
-            ${totalLifetimeSpend.toLocaleString()}
+            {formatCurrency(totalLifetimeSpend, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400">
             Synchronized across lounge & bistro POS
@@ -160,7 +161,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">VIP House Account Receivables</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-slate-100">
-            ${totalHouseReceivables.toFixed(2)}
+            {formatCurrency(totalHouseReceivables, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400">
             Monthly member tab billing active
@@ -270,13 +271,13 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-100">
-                        ${cust.lifetimeSpend.toLocaleString()}
+                        {formatCurrency(cust.lifetimeSpend, state.settings?.currency)}
                       </td>
                       <td className="py-3 px-4 text-right font-mono tabular-nums text-amber-300">
                         {cust.loyaltyPoints.toLocaleString()} pts
                       </td>
                       <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-300">
-                        ${cust.houseAccountBalance.toFixed(2)}
+                        {formatCurrency(cust.houseAccountBalance, state.settings?.currency)}
                       </td>
                     </tr>
                   );
@@ -316,7 +317,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
               <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
                 <div className="text-[11px] text-slate-400">Lifetime Spend</div>
                 <div className="text-sm font-semibold font-mono tabular-nums text-slate-100 mt-0.5">
-                  ${activeCustomer.lifetimeSpend.toLocaleString()}
+                  {formatCurrency(activeCustomer.lifetimeSpend, state.settings?.currency)}
                 </div>
               </div>
               <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
@@ -328,7 +329,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
               <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
                 <div className="text-[11px] text-slate-400">House Account</div>
                 <div className="text-sm font-semibold font-mono tabular-nums text-slate-100 mt-0.5">
-                  ${activeCustomer.houseAccountBalance.toFixed(2)}
+                  {formatCurrency(activeCustomer.houseAccountBalance, state.settings?.currency)}
                 </div>
               </div>
             </div>
@@ -369,7 +370,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                   className="flex-1 py-2 px-3 text-xs font-medium text-emerald-300 bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-700/50 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
-                  <span>Settle House Tab (${activeCustomer.houseAccountBalance})</span>
+                  <span>Settle House Tab ({formatCurrency(activeCustomer.houseAccountBalance, state.settings?.currency)})</span>
                 </button>
               )}
             </div>
@@ -400,7 +401,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                         </div>
                       </div>
                       <div className="text-right font-mono tabular-nums text-slate-100 font-semibold">
-                        ${ord.totalAmount.toFixed(2)}
+                        {formatCurrency(ord.totalAmount, state.settings?.currency)}
                       </div>
                     </div>
                   ))}

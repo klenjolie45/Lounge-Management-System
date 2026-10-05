@@ -212,7 +212,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   const Icon = item.icon;
                   const isActive = activeModule === item.id;
                   const isPermitted =
-                    !item.requiredPermission || hasPermission(currentUser, item.requiredPermission);
+                    !item.requiredPermission ||
+                    hasPermission(currentUser, item.requiredPermission, state.settings?.rolePermissions);
 
                   return (
                     <button

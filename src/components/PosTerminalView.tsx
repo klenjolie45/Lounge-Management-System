@@ -437,7 +437,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                           {item.category} · {item.sku}
                         </span>
                         <span className="text-base font-semibold font-mono tabular-nums text-amber-400">
-                          ${item.price.toFixed(2)}
+                          {formatCurrency(item.price, state.settings?.currency)}
                         </span>
                       </div>
                     </div>
@@ -447,7 +447,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                         {item.category} · {item.sku}
                       </span>
                       <span className="text-base font-semibold font-mono tabular-nums text-amber-400">
-                        ${item.price.toFixed(2)}
+                        {formatCurrency(item.price, state.settings?.currency)}
                       </span>
                     </div>
                   )}
@@ -471,7 +471,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                       <div className="flex items-center justify-between text-[11px] text-slate-400">
                         <span>Auto-Deduct Recipe BOM</span>
                         <span className="font-mono tabular-nums">
-                          COGS ${unitCost.toFixed(2)} · Margin{' '}
+                          COGS {formatCurrency(unitCost, state.settings?.currency)} · Margin{' '}
                           {Math.round(((item.price - unitCost) / item.price) * 100)}%
                         </span>
                       </div>
@@ -659,8 +659,8 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                     {entry.menuItem.name}
                   </p>
                   <p className="text-[11px] text-slate-400 font-mono tabular-nums">
-                    ${entry.menuItem.price.toFixed(2)} each · Subtotal $
-                    {(entry.menuItem.price * entry.quantity).toFixed(2)}
+                    {formatCurrency(entry.menuItem.price, state.settings?.currency)} each · Subtotal{' '}
+                    {formatCurrency(entry.menuItem.price * entry.quantity, state.settings?.currency)}
                   </p>
                 </div>
 
@@ -726,28 +726,28 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
         <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
           <div className="flex justify-between text-slate-400">
             <span>Subtotal</span>
-            <span className="font-mono tabular-nums">${orderTotals.subtotal.toFixed(2)}</span>
+            <span className="font-mono tabular-nums">{formatCurrency(orderTotals.subtotal, state.settings?.currency)}</span>
           </div>
           {orderTotals.discountAmount > 0 && (
             <div className="flex justify-between text-amber-400">
               <span>VIP Tier Discount ({Math.round(orderTotals.discountRate * 100)}%)</span>
               <span className="font-mono tabular-nums">
-                -${orderTotals.discountAmount.toFixed(2)}
+                -{formatCurrency(orderTotals.discountAmount, state.settings?.currency)}
               </span>
             </div>
           )}
           <div className="flex justify-between text-slate-400">
             <span>Hospitality Service Charge (18%)</span>
-            <span className="font-mono tabular-nums">${orderTotals.serviceCharge.toFixed(2)}</span>
+            <span className="font-mono tabular-nums">{formatCurrency(orderTotals.serviceCharge, state.settings?.currency)}</span>
           </div>
           <div className="flex justify-between text-slate-400">
             <span>Sales Tax (8.75%)</span>
-            <span className="font-mono tabular-nums">${orderTotals.taxAmount.toFixed(2)}</span>
+            <span className="font-mono tabular-nums">{formatCurrency(orderTotals.taxAmount, state.settings?.currency)}</span>
           </div>
           <div className="flex justify-between text-sm font-semibold text-slate-100 pt-2 border-t border-slate-800">
             <span>Total Due</span>
             <span className="font-mono tabular-nums text-amber-400">
-              ${orderTotals.totalAmount.toFixed(2)}
+              {formatCurrency(orderTotals.totalAmount, state.settings?.currency)}
             </span>
           </div>
         </div>
@@ -777,7 +777,9 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
           {paymentMethod === 'Cash Drawer' && cart.length > 0 && (
             <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-[11px] text-slate-400">Cash Received ($)</label>
+                <label className="text-[11px] text-slate-400">
+                  Cash Received ({state.settings?.currency?.symbol || '₦'})
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -787,15 +789,16 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                   className="w-28 px-2 py-1 text-xs font-mono tabular-nums text-right bg-slate-900 border border-slate-700 rounded text-slate-100"
                 />
               </div>
-              <div className="flex items-center gap-1.5">
-                {[50, 100, 150, 200].map((bill) => (
+              <div className="grid grid-cols-6 gap-1">
+                {[1000, 500, 200, 100, 50, 20].map((bill) => (
                   <button
                     key={bill}
                     type="button"
                     onClick={() => setCashTendered(String(bill))}
-                    className="flex-1 py-1 text-[11px] font-mono tabular-nums bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 cursor-pointer"
+                    className="py-1 text-[11px] font-mono tabular-nums bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 text-center cursor-pointer transition-colors hover:text-amber-300 hover:border-amber-500/40"
+                    title={`Tender ${state.settings?.currency?.symbol || '₦'}${bill} Naira bill`}
                   >
-                    ${bill}
+                    {state.settings?.currency?.symbol || '₦'}{bill}
                   </button>
                 ))}
               </div>
@@ -803,7 +806,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                 <div className="flex justify-between text-xs font-mono tabular-nums text-emerald-400 pt-1 border-t border-slate-800">
                   <span>Change Due to Guest</span>
                   <span>
-                    ${(parseFloat(cashTendered) - orderTotals.totalAmount).toFixed(2)}
+                    {formatCurrency(parseFloat(cashTendered) - orderTotals.totalAmount, state.settings?.currency)}
                   </span>
                 </div>
               )}

@@ -109,13 +109,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     );
 
     if (!user) {
-      // If no exact match found, provide helpful suggestion or allow demo account
-      const firstUser = state.users[0];
       setLoginError(
-        `Staff profile not found for "${loginIdentifier}". Available staff emails: ${state.users
-          .map((u) => u.email)
-          .slice(0, 3)
-          .join(', ')}`
+        `Staff profile not found for "${loginIdentifier}". Please verify your email or phone number.`
       );
       return;
     }
@@ -187,12 +182,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (pinDigits.length < 4) {
       const nextPin = pinDigits + num;
       setPinDigits(nextPin);
-      if (nextPin.length === 4 && selectedStaffForPin) {
-        if (nextPin === selectedStaffForPin.pin) {
-          onSwitchUser(selectedStaffForPin.id);
-          onClose();
+      if (nextPin.length === 4) {
+        if (selectedStaffForPin) {
+          if (nextPin === selectedStaffForPin.pin) {
+            onSwitchUser(selectedStaffForPin.id);
+            onClose();
+          } else {
+            setPinError(`Incorrect 4-digit PIN for ${selectedStaffForPin.name}`);
+          }
         } else {
-          setPinError(`Incorrect 4-digit PIN for ${selectedStaffForPin.name}`);
+          // Direct PIN match across active staff accounts
+          const matched = state.users.find((u) => u.pin === nextPin && u.active);
+          if (matched) {
+            onSwitchUser(matched.id);
+            onClose();
+          } else {
+            setPinError('Invalid 4-digit POS PIN. Please try again.');
+          }
         }
       }
     }
@@ -450,39 +456,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {/* SUB-MODE B: LOGIN WITH QUICK PIN */}
             {loginMethod === 'pin' && (
               <div className="space-y-4">
-                {/* Staff User Tiles */}
+                {/* Clean Staff Selection Dropdown (No PIN display) */}
                 <div className="space-y-1">
-                  <span className="text-xs text-slate-400 font-medium">Select Staff Account:</span>
-                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
-                    {state.users.map((u) => {
-                      const isSelected = selectedStaffForPin?.id === u.id;
-                      return (
-                        <div
-                          key={u.id}
-                          onClick={() => {
-                            setSelectedStaffForPin(u);
-                            setPinDigits('');
-                            setPinError('');
-                          }}
-                          className={`p-2.5 rounded-lg border text-xs cursor-pointer transition-colors flex items-center gap-2 ${
-                            isSelected
-                              ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                              : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
-                          }`}
-                        >
-                          <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-[10px]">
-                            {u.name.slice(0, 1)}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-semibold truncate text-slate-100">{u.name}</div>
-                            <div className="text-[10px] text-slate-400">
-                              {getRoleBadgeLabel(u.role)} · PIN: {u.pin}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <label className="block text-xs text-slate-300 font-semibold">
+                    Staff Member (Optional):
+                  </label>
+                  <select
+                    value={selectedStaffForPin?.id || ''}
+                    onChange={(e) => {
+                      const found = state.users.find((u) => u.id === e.target.value) || null;
+                      setSelectedStaffForPin(found);
+                      setPinDigits('');
+                      setPinError('');
+                    }}
+                    className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-100"
+                  >
+                    <option value="">-- Enter 4-digit PIN directly or select profile --</option>
+                    {state.users
+                      .filter((u) => u.active)
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({getRoleBadgeLabel(u.role)})
+                        </option>
+                      ))}
+                  </select>
                 </div>
 
                 {/* 4 PIN Dots */}
@@ -490,10 +487,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="text-xs text-slate-400">
                     {selectedStaffForPin ? (
                       <span>
-                        Enter 4-digit PIN for <strong>{selectedStaffForPin.name}</strong>:
+                        Enter 4-digit POS PIN for <strong>{selectedStaffForPin.name}</strong>:
                       </span>
                     ) : (
-                      <span>Select an account above or type 4-digit PIN</span>
+                      <span>Enter your registered 4-digit POS PIN below:</span>
                     )}
                   </div>
                   <div className="flex justify-center gap-3">

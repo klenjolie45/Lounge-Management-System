@@ -1127,7 +1127,7 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
       netOperatingMargin: 5212.3,
       ordersCount: 58,
       lowStockAlertsAtClose: 1,
-      notes: 'Minor -$8.00 cash drawer variance from busy midnight tab change rounding.',
+      notes: 'Minor -₦8.00 cash drawer variance from busy midnight tab change rounding.',
       status: 'VARIANCE_FLAGGED',
     },
   ],
@@ -1507,12 +1507,15 @@ export function applySyncOperation(
         if (!next.settings.rolePermissions) {
           next.settings.rolePermissions = JSON.parse(JSON.stringify(ROLE_DEFAULT_PERMISSIONS));
         }
-        for (const role of op.payload.assignedRoles as UserRole[]) {
-          if (!next.settings.rolePermissions[role]) {
-            next.settings.rolePermissions[role] = [];
-          }
-          if (!next.settings.rolePermissions[role].includes(op.payload.permission.key)) {
-            next.settings.rolePermissions[role].push(op.payload.permission.key);
+        const rolePermissions = next.settings.rolePermissions;
+        if (rolePermissions) {
+          for (const role of op.payload.assignedRoles as UserRole[]) {
+            if (!rolePermissions[role]) {
+              rolePermissions[role] = [];
+            }
+            if (!rolePermissions[role].includes(op.payload.permission.key)) {
+              rolePermissions[role].push(op.payload.permission.key);
+            }
           }
         }
       }

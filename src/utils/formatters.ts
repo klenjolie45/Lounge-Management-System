@@ -85,7 +85,7 @@ export function getRoleBadgeLabel(role: UserRole): string {
 }
 
 export function formatCurrency(amount: number, config?: CurrencyConfig): string {
-  const sym = config?.symbol || '$';
+  const sym = config?.symbol || '₦';
   const pos = config?.position || 'before';
   const decimals = config?.decimals ?? 2;
   const formattedNum = (amount || 0).toLocaleString(undefined, {

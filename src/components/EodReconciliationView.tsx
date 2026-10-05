@@ -13,6 +13,7 @@ import {
   SyncOperationType,
 } from '../types/lounge';
 import { PrintContentType } from './PrintReceiptModal';
+import { formatCurrency } from '../utils/formatters';
 
 interface EodReconciliationViewProps {
   state: CloudSystemState;
@@ -30,14 +31,14 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
   const [openingFloat, setOpeningFloat] = useState<string>('500.00');
   const [cashPayouts, setCashPayouts] = useState<string>('35.00');
 
-  // Denomination counter state for physical cash drawer count
-  const [bills100, setBills100] = useState<number>(3);
-  const [bills50, setBills50] = useState<number>(4);
-  const [bills20, setBills20] = useState<number>(3);
-  const [bills10, setBills10] = useState<number>(0);
-  const [bills5, setBills5] = useState<number>(1);
-  const [bills1, setBills1] = useState<number>(1);
-  const [coinsAmount, setCoinsAmount] = useState<string>('0.40');
+  // Denomination counter state for physical cash drawer count (1000, 500, 200, 100, 50, 20 naira only)
+  const [bills1000, setBills1000] = useState<number>(0);
+  const [bills500, setBills500] = useState<number>(1);
+  const [bills200, setBills200] = useState<number>(1);
+  const [bills100, setBills100] = useState<number>(1);
+  const [bills50, setBills50] = useState<number>(1);
+  const [bills20, setBills20] = useState<number>(1);
+  const [coinsAmount, setCoinsAmount] = useState<string>('0.00');
 
   const [cardBatchInput, setCardBatchInput] = useState<string>('');
   const [managerNotes, setManagerNotes] = useState<string>(
@@ -102,15 +103,15 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
 
   const actualCashCounted = useMemo(() => {
     const billsSum =
+      bills1000 * 1000 +
+      bills500 * 500 +
+      bills200 * 200 +
       bills100 * 100 +
       bills50 * 50 +
-      bills20 * 20 +
-      bills10 * 10 +
-      bills5 * 5 +
-      bills1 * 1;
+      bills20 * 20;
     const coins = parseFloat(coinsAmount) || 0;
     return Number((billsSum + coins).toFixed(2));
-  }, [bills100, bills50, bills20, bills10, bills5, bills1, coinsAmount]);
+  }, [bills1000, bills500, bills200, bills100, bills50, bills20, coinsAmount]);
 
   const cashVariance = Number((actualCashCounted - expectedCashInDrawer).toFixed(2));
 
@@ -131,25 +132,25 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
 
   const handleMatchExpectedCash = () => {
     let rem = Math.max(0, expectedCashInDrawer);
+    const b1000 = Math.floor(rem / 1000);
+    rem = Number((rem - b1000 * 1000).toFixed(2));
+    const b500 = Math.floor(rem / 500);
+    rem = Number((rem - b500 * 500).toFixed(2));
+    const b200 = Math.floor(rem / 200);
+    rem = Number((rem - b200 * 200).toFixed(2));
     const b100 = Math.floor(rem / 100);
     rem = Number((rem - b100 * 100).toFixed(2));
     const b50 = Math.floor(rem / 50);
     rem = Number((rem - b50 * 50).toFixed(2));
     const b20 = Math.floor(rem / 20);
     rem = Number((rem - b20 * 20).toFixed(2));
-    const b10 = Math.floor(rem / 10);
-    rem = Number((rem - b10 * 10).toFixed(2));
-    const b5 = Math.floor(rem / 5);
-    rem = Number((rem - b5 * 5).toFixed(2));
-    const b1 = Math.floor(rem / 1);
-    rem = Number((rem - b1 * 1).toFixed(2));
 
+    setBills1000(b1000);
+    setBills500(b500);
+    setBills200(b200);
     setBills100(b100);
     setBills50(b50);
     setBills20(b20);
-    setBills10(b10);
-    setBills5(b5);
-    setBills1(b1);
     setCoinsAmount(rem.toFixed(2));
   };
 
@@ -188,7 +189,7 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
     await onDispatch(
       'CREATE_EOD_RECONCILIATION',
       { reconciliation: rec },
-      `Committed EOD Reconciliation (${rec.businessDate}) · Net Margin $${rec.netOperatingMargin.toFixed(2)}`
+      `Committed EOD Reconciliation (${rec.businessDate}) · Net Margin ${formatCurrency(rec.netOperatingMargin, state.settings?.currency)}`
     );
 
     setJustSubmittedId(rec.id);
@@ -201,17 +202,17 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Expected Cash in Drawer</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-slate-100">
-            ${expectedCashInDrawer.toFixed(2)}
+            {formatCurrency(expectedCashInDrawer, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400 font-mono tabular-nums">
-            Float ${floatNum.toFixed(0)} + Cash Sales ${shiftMetrics.cashSalesSystem.toFixed(2)} - Payouts ${payoutsNum.toFixed(0)}
+            Float {formatCurrency(floatNum, state.settings?.currency)} + Cash Sales {formatCurrency(shiftMetrics.cashSalesSystem, state.settings?.currency)} - Payouts {formatCurrency(payoutsNum, state.settings?.currency)}
           </p>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Physical Counted Cash</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-amber-400">
-            ${actualCashCounted.toFixed(2)}
+            {formatCurrency(actualCashCounted, state.settings?.currency)}
           </div>
           <p
             className={`text-xs font-mono tabular-nums ${
@@ -220,27 +221,27 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
                 : 'text-amber-300'
             }`}
           >
-            Variance: {cashVariance >= 0 ? `+$${cashVariance.toFixed(2)}` : `-$${Math.abs(cashVariance).toFixed(2)}`}
+            Variance: {cashVariance >= 0 ? `+${formatCurrency(cashVariance, state.settings?.currency)}` : `-${formatCurrency(Math.abs(cashVariance), state.settings?.currency)}`}
           </p>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Card & VIP House Settlement</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-slate-100">
-            ${(shiftMetrics.cardSalesSystem + shiftMetrics.vipAccountSalesSystem).toFixed(2)}
+            {formatCurrency(shiftMetrics.cardSalesSystem + shiftMetrics.vipAccountSalesSystem, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400 font-mono tabular-nums">
-            Card ${shiftMetrics.cardSalesSystem.toFixed(2)} · VIP House ${shiftMetrics.vipAccountSalesSystem.toFixed(2)}
+            Card {formatCurrency(shiftMetrics.cardSalesSystem, state.settings?.currency)} · VIP House {formatCurrency(shiftMetrics.vipAccountSalesSystem, state.settings?.currency)}
           </p>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Shift Net Operating Margin</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-emerald-400">
-            ${netOperatingMargin.toFixed(2)}
+            {formatCurrency(netOperatingMargin, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400 font-mono tabular-nums">
-            COGS ${shiftMetrics.totalRecipeCogs.toFixed(2)} · Spillage ${shiftMetrics.wasteAndSpillageCost.toFixed(2)}
+            COGS {formatCurrency(shiftMetrics.totalRecipeCogs, state.settings?.currency)} · Spillage {formatCurrency(shiftMetrics.wasteAndSpillageCost, state.settings?.currency)}
           </p>
         </div>
       </div>
@@ -275,7 +276,9 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
-              <label className="block text-slate-400 mb-1">Opening Drawer Float ($)</label>
+              <label className="block text-slate-400 mb-1">
+                Opening Drawer Float ({state.settings?.currency?.symbol || '₦'})
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -286,7 +289,7 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
             </div>
             <div>
               <label className="block text-slate-400 mb-1">
-                Petty Cash Payouts / Ice & Garnish Runs ($)
+                Petty Cash Payouts / Ice & Garnish Runs ({state.settings?.currency?.symbol || '₦'})
               </label>
               <input
                 type="number"
@@ -298,24 +301,24 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
             </div>
           </div>
 
-          {/* Denomination Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          {/* Denomination Grid (1000, 500, 200, 100, 50, 20 Naira Bills Only) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
             {[
-              { label: '$100 Bills', val: bills100, setter: setBills100, mult: 100 },
-              { label: '$50 Bills', val: bills50, setter: setBills50, mult: 50 },
-              { label: '$20 Bills', val: bills20, setter: setBills20, mult: 20 },
-              { label: '$10 Bills', val: bills10, setter: setBills10, mult: 10 },
-              { label: '$5 Bills', val: bills5, setter: setBills5, mult: 5 },
-              { label: '$1 Bills', val: bills1, setter: setBills1, mult: 1 },
+              { label: `${state.settings?.currency?.symbol || '₦'}1,000 Bills`, val: bills1000, setter: setBills1000, mult: 1000 },
+              { label: `${state.settings?.currency?.symbol || '₦'}500 Bills`, val: bills500, setter: setBills500, mult: 500 },
+              { label: `${state.settings?.currency?.symbol || '₦'}200 Bills`, val: bills200, setter: setBills200, mult: 200 },
+              { label: `${state.settings?.currency?.symbol || '₦'}100 Bills`, val: bills100, setter: setBills100, mult: 100 },
+              { label: `${state.settings?.currency?.symbol || '₦'}50 Bills`, val: bills50, setter: setBills50, mult: 50 },
+              { label: `${state.settings?.currency?.symbol || '₦'}20 Bills`, val: bills20, setter: setBills20, mult: 20 },
             ].map((denom) => (
               <div
                 key={denom.label}
                 className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5"
               >
                 <div className="flex items-center justify-between text-slate-400">
-                  <span>{denom.label}</span>
+                  <span className="font-medium text-slate-300">{denom.label}</span>
                   <span className="font-mono tabular-nums text-slate-300">
-                    ${denom.val * denom.mult}
+                    {formatCurrency(denom.val * denom.mult, state.settings?.currency)}
                   </span>
                 </div>
                 <input
@@ -328,11 +331,11 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
               </div>
             ))}
 
-            <div className="col-span-2 p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
+            <div className="col-span-2 sm:col-span-3 p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1.5">
               <div className="flex items-center justify-between text-slate-400">
-                <span>Loose Rolled Coins & Change ($)</span>
+                <span>Loose Rolled Coins & Change ({state.settings?.currency?.symbol || '₦'})</span>
                 <span className="font-mono tabular-nums text-slate-300">
-                  ${(parseFloat(coinsAmount) || 0).toFixed(2)}
+                  {formatCurrency(parseFloat(coinsAmount) || 0, state.settings?.currency)}
                 </span>
               </div>
               <input
@@ -356,14 +359,14 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
               )}
               <span className="text-slate-200 font-medium">
                 {Math.abs(cashVariance) < 0.01
-                  ? 'Cash Drawer Perfectly Balanced ($0.00 Variance)'
+                  ? `Cash Drawer Perfectly Balanced (${formatCurrency(0, state.settings?.currency)} Variance)`
                   : cashVariance > 0
-                  ? `Cash Drawer Overage Flagged (+$${cashVariance.toFixed(2)})`
-                  : `Cash Drawer Shortage Flagged (-$${Math.abs(cashVariance).toFixed(2)})`}
+                  ? `Cash Drawer Overage Flagged (+${formatCurrency(cashVariance, state.settings?.currency)})`
+                  : `Cash Drawer Shortage Flagged (-${formatCurrency(Math.abs(cashVariance), state.settings?.currency)})`}
               </span>
             </div>
             <span className="font-mono tabular-nums text-slate-400">
-              Counted ${actualCashCounted.toFixed(2)} vs Expected ${expectedCashInDrawer.toFixed(2)}
+              Counted {formatCurrency(actualCashCounted, state.settings?.currency)} vs Expected {formatCurrency(expectedCashInDrawer, state.settings?.currency)}
             </span>
           </div>
         </div>
@@ -404,7 +407,7 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
 
             <div>
               <label className="block text-slate-400 mb-1">
-                Card Terminal Batch Total ($)
+                Card Terminal Batch Total ({state.settings?.currency?.symbol || '₦'})
               </label>
               <input
                 type="number"
@@ -421,15 +424,15 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
           <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-2 text-xs font-mono tabular-nums">
             <div className="flex justify-between text-slate-300">
               <span className="font-sans text-slate-400">Gross Shift Sales ({state.orders.length} Orders)</span>
-              <span>${shiftMetrics.totalGrossSales.toFixed(2)}</span>
+              <span>{formatCurrency(shiftMetrics.totalGrossSales, state.settings?.currency)}</span>
             </div>
             <div className="flex justify-between text-slate-300">
               <span className="font-sans text-slate-400">Deducted Recipe Ingredients COGS</span>
-              <span>-${shiftMetrics.totalRecipeCogs.toFixed(2)}</span>
+              <span>-{formatCurrency(shiftMetrics.totalRecipeCogs, state.settings?.currency)}</span>
             </div>
             <div className="flex justify-between text-slate-300">
               <span className="font-sans text-slate-400">Logged Bar/Kitchen Spillage Cost</span>
-              <span>-${shiftMetrics.wasteAndSpillageCost.toFixed(2)}</span>
+              <span>-{formatCurrency(shiftMetrics.wasteAndSpillageCost, state.settings?.currency)}</span>
             </div>
             <div className="flex justify-between text-amber-300">
               <span className="font-sans">Low-Stock Ingredients Flagged for PO</span>
@@ -552,10 +555,10 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
                       </div>
                     </td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-100">
-                      ${rec.totalGrossSales.toFixed(2)}
+                      {formatCurrency(rec.totalGrossSales, state.settings?.currency)}
                     </td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-300">
-                      ${rec.expectedCashInDrawer.toFixed(2)} / ${rec.actualCashCounted.toFixed(2)}
+                      {formatCurrency(rec.expectedCashInDrawer, state.settings?.currency)} / {formatCurrency(rec.actualCashCounted, state.settings?.currency)}
                     </td>
                     <td
                       className={`py-3 px-4 text-right font-mono tabular-nums font-medium ${
@@ -565,14 +568,14 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
                       }`}
                     >
                       {rec.cashVariance >= 0
-                        ? `+$${rec.cashVariance.toFixed(2)}`
-                        : `-$${Math.abs(rec.cashVariance).toFixed(2)}`}
+                        ? `+${formatCurrency(rec.cashVariance, state.settings?.currency)}`
+                        : `-${formatCurrency(Math.abs(rec.cashVariance), state.settings?.currency)}`}
                     </td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-400">
-                      ${rec.totalRecipeCogs.toFixed(2)}
+                      {formatCurrency(rec.totalRecipeCogs, state.settings?.currency)}
                     </td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums text-emerald-400 font-semibold">
-                      ${rec.netOperatingMargin.toFixed(2)}
+                      {formatCurrency(rec.netOperatingMargin, state.settings?.currency)}
                     </td>
                     <td className="py-3 px-4">
                       {rec.status === 'RECONCILED_BALANCED' ? (

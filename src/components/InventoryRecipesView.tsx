@@ -25,6 +25,7 @@ import {
   SyncOperationType,
   UnitType,
 } from '../types/lounge';
+import { formatCurrency } from '../utils/formatters';
 
 interface InventoryRecipesViewProps {
   state: CloudSystemState;

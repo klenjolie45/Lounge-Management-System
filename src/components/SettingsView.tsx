@@ -361,6 +361,44 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </p>
             </div>
 
+            {/* Quick Currency Presets */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] text-slate-400 font-medium">Quick Currency Selection:</span>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {[
+                  { name: 'Nigerian Naira (₦ NGN)', symbol: '₦', code: 'NGN', position: 'before', decimals: 2 },
+                  { name: 'US Dollar ($ USD)', symbol: '$', code: 'USD', position: 'before', decimals: 2 },
+                  { name: 'Euro (€ EUR)', symbol: '€', code: 'EUR', position: 'after', decimals: 2 },
+                  { name: 'British Pound (£ GBP)', symbol: '£', code: 'GBP', position: 'before', decimals: 2 },
+                  { name: 'Ghanaian Cedi (₵ GHS)', symbol: '₵', code: 'GHS', position: 'before', decimals: 2 },
+                  { name: 'South African Rand (R ZAR)', symbol: 'R', code: 'ZAR', position: 'before', decimals: 2 },
+                ].map((cur) => (
+                  <button
+                    key={cur.code}
+                    type="button"
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        currency: {
+                          symbol: cur.symbol,
+                          code: cur.code,
+                          position: cur.position as 'before' | 'after',
+                          decimals: cur.decimals,
+                        },
+                      })
+                    }
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors cursor-pointer ${
+                      draft.currency.code === cur.code
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-semibold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {cur.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="block text-slate-300 mb-1">Currency Symbol</label>
@@ -407,8 +445,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   }
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100"
                 >
-                  <option value="before">Before Amount (e.g. $125.00)</option>
-                  <option value="after">After Amount (e.g. 125.00 €)</option>
+                  <option value="before">Before Amount (e.g. {draft.currency.symbol}125.00)</option>
+                  <option value="after">After Amount (e.g. 125.00 {draft.currency.symbol})</option>
                 </select>
               </div>
 
@@ -856,7 +894,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       Cash Drawer Variance Alert
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      Triggers immediately if actual cash count deviates by more than $5.00
+                      Triggers immediately if actual cash count deviates by more than {formatCurrency(5, draft.currency)}
                     </div>
                   </div>
                   <input

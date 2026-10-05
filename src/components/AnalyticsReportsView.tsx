@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { CloudSystemState, SaleOrder } from '../types/lounge';
 import { PrintContentType } from './PrintReceiptModal';
+import { formatCurrency } from '../utils/formatters';
 
 interface AnalyticsReportsViewProps {
   state: CloudSystemState;
@@ -181,17 +182,17 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Live Session Gross Revenue</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-amber-400">
-            ${metrics.grossRevenue.toFixed(2)}
+            {formatCurrency(metrics.grossRevenue, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400 font-mono tabular-nums">
-            {state.orders.length} settled tickets · Avg ${metrics.avgCheck.toFixed(2)}
+            {state.orders.length} settled tickets · Avg {formatCurrency(metrics.avgCheck, state.settings?.currency)}
           </p>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Recipe COGS Deducted</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-slate-100">
-            ${metrics.totalRecipeCogs.toFixed(2)}
+            {formatCurrency(metrics.totalRecipeCogs, state.settings?.currency)}
           </div>
           <p className="text-xs text-slate-400 font-mono tabular-nums">
             {metrics.netSubtotal > 0
@@ -203,7 +204,7 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
         <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
           <span className="text-xs text-slate-400">Gross Operating Margin</span>
           <div className="text-2xl font-semibold font-mono tabular-nums text-emerald-400">
-            ${metrics.grossProfit.toFixed(2)} ({metrics.marginPct.toFixed(1)}%)
+            {formatCurrency(metrics.grossProfit, state.settings?.currency)} ({metrics.marginPct.toFixed(1)}%)
           </div>
           <p className="text-xs text-slate-400">
             Net sales minus exact BOM ingredient cost
@@ -254,19 +255,19 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                   key={slot.label}
                   className="flex-1 flex flex-col items-center gap-1.5 group"
                 >
-                  <div className="text-[10px] font-mono tabular-nums text-slate-400 group-hover:text-amber-300">
-                    ${Math.round(slot.rev)}
+                  <div className="text-[10px] font-mono tabular-nums text-slate-400 group-hover:text-amber-300 truncate w-full text-center">
+                    {formatCurrency(Math.round(slot.rev), { ...state.settings?.currency, decimals: 0 })}
                   </div>
                   <div className="w-full flex items-end justify-center gap-1 h-40">
                     <div
                       className="w-3.5 bg-amber-500/90 group-hover:bg-amber-400 rounded-t transition-all"
                       style={{ height: `${revHeight}px` }}
-                      title={`Revenue: $${slot.rev.toFixed(2)}`}
+                      title={`Revenue: ${formatCurrency(slot.rev, state.settings?.currency)}`}
                     />
                     <div
                       className="w-2.5 bg-slate-600 rounded-t transition-all"
                       style={{ height: `${cogsHeight}px` }}
-                      title={`COGS: $${slot.cogs.toFixed(2)}`}
+                      title={`COGS: ${formatCurrency(slot.cogs, state.settings?.currency)}`}
                     />
                   </div>
                   <span className="text-[11px] font-mono tabular-nums text-slate-400">
@@ -304,13 +305,13 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-medium text-slate-100">{cat.category}</span>
                     <span className="font-mono tabular-nums text-amber-400 font-semibold">
-                      ${cat.revenue.toFixed(2)}
+                      {formatCurrency(cat.revenue, state.settings?.currency)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono tabular-nums">
                     <span>{cat.units} units sold</span>
                     <span>
-                      COGS ${cat.cogs.toFixed(2)} · Margin {marginPct}%
+                      COGS {formatCurrency(cat.cogs, state.settings?.currency)} · Margin {marginPct}%
                     </span>
                   </div>
                 </div>
@@ -358,13 +359,13 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                       {prod.unitsSold}
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono tabular-nums text-slate-100">
-                      ${prod.revenue.toFixed(2)}
+                      {formatCurrency(prod.revenue, state.settings?.currency)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono tabular-nums text-slate-400">
-                      ${prod.cogs.toFixed(2)}
+                      {formatCurrency(prod.cogs, state.settings?.currency)}
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono tabular-nums text-emerald-400 font-medium">
-                      ${net.toFixed(2)} ({pct}%)
+                      {formatCurrency(net, state.settings?.currency)} ({pct}%)
                     </td>
                   </tr>
                 );
@@ -490,10 +491,10 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                     <td className="py-3 px-4 text-slate-300">{order.paymentMethod}</td>
                     <td className="py-3 px-4 text-right font-mono tabular-nums">
                       <div className="font-semibold text-slate-100">
-                        ${order.totalAmount.toFixed(2)}
+                        {formatCurrency(order.totalAmount, state.settings?.currency)}
                       </div>
                       <div className="text-[11px] text-slate-400">
-                        COGS ${order.totalCogs.toFixed(2)}
+                        COGS {formatCurrency(order.totalCogs, state.settings?.currency)}
                       </div>
                     </td>
                     <td className="py-3 px-4 text-right">
@@ -544,7 +545,7 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                   <span>
                     {item.quantity}x {item.name}
                   </span>
-                  <span>${(item.unitPrice * item.quantity).toFixed(2)}</span>
+                  <span>{formatCurrency(item.unitPrice * item.quantity, state.settings?.currency)}</span>
                 </div>
               ))}
             </div>
@@ -559,7 +560,7 @@ export const AnalyticsReportsView: React.FC<AnalyticsReportsViewProps> = ({
                     <span className="text-slate-300 font-sans">{d.ingredientName}</span>
                     <span className="text-amber-300">
                       -{d.quantityDeducted}
-                      {d.unit} (${d.costImpact.toFixed(2)}) · Rem: {d.remainingStockAfter}
+                      {d.unit} ({formatCurrency(d.costImpact, state.settings?.currency)}) · Rem: {d.remainingStockAfter}
                       {d.unit}
                     </span>
                   </div>
