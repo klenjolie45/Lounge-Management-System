@@ -297,6 +297,12 @@ export interface EmailNotificationSettings {
   recipientEmails: string[];
   smtpSenderName: string;
   smtpFromEmail: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: 'tls' | 'ssl' | 'none';
+  smtpUsername?: string;
+  smtpPassword?: string;
+  smtpAuthRequired?: boolean;
   alertFrequency: 'instant' | 'daily_digest';
 }
 

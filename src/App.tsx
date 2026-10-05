@@ -12,16 +12,19 @@ import {
 } from 'lucide-react';
 import { AnalyticsReportsView } from './components/AnalyticsReportsView';
 import { AuthModal } from './components/AuthModal';
+import { CalculatorModule } from './components/CalculatorModule';
 import { CustomerCrmView } from './components/CustomerCrmView';
 import { DailyRecipeUsageView } from './components/DailyRecipeUsageView';
 import { EodReconciliationView } from './components/EodReconciliationView';
 import { InventoryRecipesView } from './components/InventoryRecipesView';
+import { LoginPage } from './components/LoginPage';
 import { PosTerminalView } from './components/PosTerminalView';
 import { PrintContentType, PrintReceiptModal } from './components/PrintReceiptModal';
 import { PurchaseOrdersSuppliersView } from './components/PurchaseOrdersSuppliersView';
 import { SettingsView } from './components/SettingsView';
 import { ActiveModule, Sidebar } from './components/Sidebar';
 import { TopHeader } from './components/TopHeader';
+import { UserProfileModal } from './components/UserProfileModal';
 import { UsersPermissionsView } from './components/UsersPermissionsView';
 import { useCloudSyncEngine } from './services/syncEngine';
 import { CustomerProfile, StaffUser } from './types/lounge';
@@ -50,15 +53,18 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [printContent, setPrintContent] = useState<PrintContentType | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [showUserProfileModal, setShowUserProfileModal] = useState<boolean>(false);
 
   // Active Staff User
   const currentUser: StaffUser = useMemo(() => {
     return state.users?.find((u) => u.id === state.activeUserId) || state.users?.[0] || {
       id: 'default',
-      name: 'Henri Laurent',
-      email: 'henri@lounge.internal',
+      name: 'Fadray Bukola',
+      email: 'fadray@koflylounge.ng',
       role: 'admin',
       pin: '1234',
+      password: 'KoflyAdmin',
       active: true,
     };
   }, [state.users, state.activeUserId]);
@@ -139,6 +145,20 @@ export default function App() {
       ? 'bg-[#181512] text-amber-50'
       : 'bg-[#0F172A] text-slate-100';
 
+  // If user is not authenticated or explicitly logged out, render the Full Login Page
+  if (!isAuthenticated) {
+    return (
+      <LoginPage
+        state={state}
+        onLoginSuccess={(userId) => {
+          switchActiveUser(userId);
+          setIsAuthenticated(true);
+        }}
+        onDispatch={dispatchOperation}
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen flex ${themeContainerBg}`}>
       {/* Collapsible / Fixed Left Sidebar */}
@@ -154,6 +174,8 @@ export default function App() {
           setAuthModalMode('login');
           setShowAuthModal(true);
         }}
+        onOpenUserProfile={() => setShowUserProfileModal(true)}
+        onLogout={() => setIsAuthenticated(false)}
         isOnline={isOnline}
         offlineQueueCount={offlineQueue.length}
       />
@@ -170,6 +192,9 @@ export default function App() {
             setAuthModalMode('login');
             setShowAuthModal(true);
           }}
+          onOpenUserProfile={() => setShowUserProfileModal(true)}
+          onOpenCalculator={() => setActiveModule('calculator')}
+          onLogout={() => setIsAuthenticated(false)}
           onQuickPrint={handleQuickPrintFromHeader}
           isOnline={isOnline}
         />
@@ -207,6 +232,13 @@ export default function App() {
               onDispatch={dispatchOperation}
               onNavigateToInventory={() => setActiveModule('inventory')}
               onOpenPrint={(c) => setPrintContent(c)}
+            />
+          )}
+
+          {activeModule === 'calculator' && (
+            <CalculatorModule
+              state={state}
+              onNavigateToPos={() => setActiveModule('pos')}
             />
           )}
 
@@ -275,6 +307,16 @@ export default function App() {
         state={state}
         onClose={() => setPrintContent(null)}
       />
+
+      {/* User Profile & Credentials Modal */}
+      {showUserProfileModal && (
+        <UserProfileModal
+          user={currentUser}
+          state={state}
+          onClose={() => setShowUserProfileModal(false)}
+          onDispatch={dispatchOperation}
+        />
+      )}
 
       {/* Staff Authentication & Login / Register Modal with OTP Option */}
       <AuthModal

@@ -27,7 +27,7 @@ export const EodReconciliationView: React.FC<EodReconciliationViewProps> = ({
   onOpenPrint,
 }) => {
   const [shiftLabel, setShiftLabel] = useState('Sunday Night Lounge & Bistro Close');
-  const [closedBy, setClosedBy] = useState('Henri Laurent (General Manager)');
+  const [closedBy, setClosedBy] = useState('Fadray Bukola (Admin / Owner)');
   const [openingFloat, setOpeningFloat] = useState<string>('500.00');
   const [cashPayouts, setCashPayouts] = useState<string>('35.00');
 

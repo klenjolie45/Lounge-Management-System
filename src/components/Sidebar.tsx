@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AlertTriangle,
   Boxes,
+  Calculator,
   ChefHat,
   ClipboardCheck,
   Cloud,
@@ -17,6 +18,7 @@ import {
   ShoppingBag,
   Sparkles,
   Truck,
+  User,
   Users,
   UtensilsCrossed,
   Wine,
@@ -29,6 +31,7 @@ import { PWAInstallButton } from './PWAInstallButton';
 export type ActiveModule =
   | 'pos'
   | 'daily_recipes'
+  | 'calculator'
   | 'inventory'
   | 'purchase_orders'
   | 'analytics'
@@ -46,6 +49,8 @@ interface SidebarProps {
   onCloseMobile: () => void;
   onOpenSyncDrawer: () => void;
   onOpenSwitchUser: () => void;
+  onOpenUserProfile?: () => void;
+  onLogout?: () => void;
   isOnline: boolean;
   offlineQueueCount: number;
 }
@@ -67,6 +72,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onOpenSyncDrawer,
   onOpenSwitchUser,
+  onOpenUserProfile,
+  onLogout,
   isOnline,
   offlineQueueCount,
 }) => {
@@ -85,6 +92,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'POS Register',
           icon: ShoppingBag,
           requiredPermission: 'pos_sales',
+        },
+        {
+          id: 'calculator',
+          label: 'Calculator & Scratchpad',
+          icon: Calculator,
         },
         {
           id: 'daily_recipes',
@@ -281,16 +293,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <PWAInstallButton />
           </div>
 
-          {/* Active Staff User Card with Quick Switch */}
+          {/* Active Staff User Card with Quick Profile & Logout */}
           <div className="pt-1">
-            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
+            <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-1.5">
+              <div
+                onClick={onOpenUserProfile}
+                className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-80 transition-opacity flex-1"
+                title="View & Edit My Profile"
+              >
                 <div className="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 font-bold flex items-center justify-center text-xs shrink-0">
                   {currentUser.name.slice(0, 1).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs font-semibold text-slate-200 truncate">
-                    {currentUser.name}
+                  <div className="text-xs font-semibold text-slate-200 truncate flex items-center gap-1">
+                    <span>{currentUser.name}</span>
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">
                     {getRoleBadgeLabel(currentUser.role)}
@@ -298,14 +314,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={onOpenSwitchUser}
-                className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded transition-colors cursor-pointer"
-                title="Switch Staff / Lock Station"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={onOpenSwitchUser}
+                  className="p-1.5 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                  title="Switch Staff User / Enter PIN"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                </button>
+                {onLogout && (
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                    title="Lock Terminal & Log Out"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
