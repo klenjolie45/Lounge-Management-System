@@ -36,8 +36,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [authView, setAuthView] = useState<'password_login' | 'pin_login' | 'reset_password' | 'register'>('password_login');
 
   // Password Login State
-  const [loginEmail, setLoginEmail] = useState('fadray@koflylounge.ng');
-  const [loginPassword, setLoginPassword] = useState('KoflyAdmin');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -351,7 +351,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="fadray@koflylounge.ng"
+                    placeholder="e.g. staff@koflylounge.ng"
+                    autoComplete="off"
                     className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 font-mono focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -381,7 +382,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder="Enter station password"
+                    autoComplete="off"
                     className="w-full pl-9 pr-10 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
                   />
                   <button
@@ -553,7 +555,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       required
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      placeholder="fadray@koflylounge.ng"
+                      placeholder="e.g. staff@koflylounge.ng"
+                      autoComplete="off"
                       className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 font-mono focus:outline-none focus:border-amber-500"
                     />
                   </div>

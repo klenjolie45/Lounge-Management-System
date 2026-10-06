@@ -6,11 +6,18 @@ import {
   BookOpen,
   Boxes,
   Check,
+  Edit2,
+  FolderPlus,
   History,
+  Layers,
   PackagePlus,
   Plus,
   Search,
   SlidersHorizontal,
+  Sparkles,
+  Tag,
+  Tags,
+  Trash2,
   X,
 } from 'lucide-react';
 import {
@@ -18,6 +25,7 @@ import {
   Ingredient,
   IngredientCategory,
   MenuCategory,
+  MenuCategoryDefinition,
   MenuItem,
   PrepStation,
   RecipeIngredient,
@@ -32,7 +40,7 @@ interface InventoryRecipesViewProps {
   onDispatch: (type: SyncOperationType, payload: any, description: string) => Promise<void>;
 }
 
-type SubView = 'ingredients' | 'alerts' | 'recipes' | 'movements';
+type SubView = 'ingredients' | 'alerts' | 'recipes' | 'categories' | 'movements';
 
 export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
   state,
@@ -41,6 +49,30 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
   const [subView, setSubView] = useState<SubView>('ingredients');
   const [searchQuery, setSearchQuery] = useState('');
   const [zoneFilter, setZoneFilter] = useState<'All' | StorageZone>('All');
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+
+  // Category modal states
+  const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDesc, setCategoryDesc] = useState('');
+  const [categoryColor, setCategoryColor] = useState('amber');
+
+  const [editingCategory, setEditingCategory] = useState<MenuCategoryDefinition | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [editCategoryDesc, setEditCategoryDesc] = useState('');
+  const [editCategoryColor, setEditCategoryColor] = useState('amber');
+
+  const [deletingCategory, setDeletingCategory] = useState<MenuCategoryDefinition | null>(null);
+  const [deleteFallbackCategory, setDeleteFallbackCategory] = useState('Signature Cocktails');
+
+  // Menu Item detail editing state
+  const [editingMenuItemDetails, setEditingMenuItemDetails] = useState<MenuItem | null>(null);
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemSku, setEditItemSku] = useState('');
+  const [editItemCategory, setEditItemCategory] = useState<string>('');
+  const [editItemStation, setEditItemStation] = useState<PrepStation>('Lounge Mixology Bar');
+  const [editItemPrice, setEditItemPrice] = useState('20');
+  const [editItemDesc, setEditItemDesc] = useState('');
 
   // Restock modal state
   const [restockTarget, setRestockTarget] = useState<Ingredient | null>(null);
@@ -243,6 +275,100 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
     setEditingMenuId(null);
   };
 
+  const menuCategoriesList = useMemo(() => {
+    if (state.menuCategories && state.menuCategories.length > 0) {
+      return state.menuCategories;
+    }
+    return [
+      { id: 'cat-cocktails', name: 'Signature Cocktails', description: 'Hand-crafted artisanal cocktails and craft mixology creations', badgeColor: 'amber' },
+      { id: 'cat-bistro', name: 'Bistro Plates', description: 'Hot gourmet kitchen entrees, burgers, and chef specialties', badgeColor: 'emerald' },
+      { id: 'cat-shareables', name: 'Artisanal Shareables', description: 'Charcuterie, tapas, artisanal flatbreads, and grazing boards', badgeColor: 'rose' },
+      { id: 'cat-cellar', name: 'Cellar & Reserve', description: 'Grand Cru Champagnes, vintage red wines, and rare reserve pours', badgeColor: 'purple' },
+    ];
+  }, [state.menuCategories]);
+
+  const filteredCategories = useMemo(() => {
+    const q = categorySearchQuery.trim().toLowerCase();
+    if (!q) return menuCategoriesList;
+    return menuCategoriesList.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.description && c.description.toLowerCase().includes(q))
+    );
+  }, [menuCategoriesList, categorySearchQuery]);
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName.trim()) return;
+    const catName = categoryName.trim();
+    const newCat: MenuCategoryDefinition = {
+      id: `cat-${Date.now()}`,
+      name: catName,
+      description: categoryDesc.trim() || `${catName} offerings and selections`,
+      badgeColor: categoryColor || 'amber',
+      sortOrder: menuCategoriesList.length + 1,
+    };
+    await onDispatch('CREATE_MENU_CATEGORY', { category: newCat }, `Created Menu Category "${catName}"`);
+    setCategoryName('');
+    setCategoryDesc('');
+    setShowCreateCategoryModal(false);
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory || !editCategoryName.trim()) return;
+    const newName = editCategoryName.trim();
+    await onDispatch(
+      'UPDATE_MENU_CATEGORY',
+      {
+        categoryId: editingCategory.id,
+        oldName: editingCategory.name,
+        updates: {
+          name: newName,
+          description: editCategoryDesc.trim(),
+          badgeColor: editCategoryColor,
+        },
+      },
+      `Updated Menu Category "${editingCategory.name}" to "${newName}"`
+    );
+    setEditingCategory(null);
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) return;
+    await onDispatch(
+      'DELETE_MENU_CATEGORY',
+      {
+        categoryId: deletingCategory.id,
+        categoryName: deletingCategory.name,
+        fallbackCategory: deleteFallbackCategory || 'Signature Cocktails',
+      },
+      `Deleted Menu Category "${deletingCategory.name}"`
+    );
+    setDeletingCategory(null);
+  };
+
+  const handleSaveMenuItemDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMenuItemDetails) return;
+    await onDispatch(
+      'UPDATE_MENU_ITEM',
+      {
+        menuItemId: editingMenuItemDetails.id,
+        updates: {
+          name: editItemName.trim(),
+          sku: editItemSku.trim(),
+          category: editItemCategory,
+          prepStation: editItemStation,
+          price: parseFloat(editItemPrice) || editingMenuItemDetails.price,
+          description: editItemDesc.trim(),
+        },
+      },
+      `Updated menu product details for "${editItemName}"`
+    );
+    setEditingMenuItemDetails(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Top KPI Summary Bar */}
@@ -338,6 +464,19 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
 
           <button
             type="button"
+            onClick={() => setSubView('categories')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+              subView === 'categories'
+                ? 'bg-amber-500 text-slate-950 font-semibold'
+                : 'text-slate-400 hover:text-slate-100'
+            }`}
+          >
+            <Tags className="w-3.5 h-3.5" />
+            <span>Menu Categories ({menuCategoriesList.length})</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setSubView('movements')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
               subView === 'movements'
@@ -351,6 +490,19 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setCategoryName('');
+              setCategoryDesc('');
+              setCategoryColor('amber');
+              setShowCreateCategoryModal(true);
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg whitespace-nowrap cursor-pointer"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-amber-400" />
+            <span>New Category</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowNewIngModal(true)}
@@ -691,17 +843,35 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
                     <div className="flex items-center justify-between text-xs text-slate-400">
                       <span>Ingredients Automatically Deducted per Sale:</span>
                       {!isEditing ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingMenuId(item.id);
-                            setDraftRecipe(JSON.parse(JSON.stringify(item.recipe)));
-                          }}
-                          className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
-                        >
-                          <SlidersHorizontal className="w-3 h-3" />
-                          <span>Edit BOM Quantities</span>
-                        </button>
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingMenuItemDetails(item);
+                              setEditItemName(item.name);
+                              setEditItemSku(item.sku);
+                              setEditItemCategory(item.category);
+                              setEditItemStation(item.prepStation);
+                              setEditItemPrice(item.price.toString());
+                              setEditItemDesc(item.description || '');
+                            }}
+                            className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Edit2 className="w-3 h-3 text-slate-400" />
+                            <span>Edit Product</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingMenuId(item.id);
+                              setDraftRecipe(JSON.parse(JSON.stringify(item.recipe)));
+                            }}
+                            className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                          >
+                            <SlidersHorizontal className="w-3 h-3" />
+                            <span>Edit BOM</span>
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <button
@@ -774,6 +944,153 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* SUBVIEW: MENU CATEGORIES MANAGEMENT */}
+      {subView === 'categories' && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative min-w-[260px] flex-1">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={categorySearchQuery}
+                onChange={(e) => setCategorySearchQuery(e.target.value)}
+                placeholder="Filter categories by name or description..."
+                className="w-full pl-8 pr-3 py-2 text-xs bg-slate-900 border border-slate-800 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCategoryName('');
+                setCategoryDesc('');
+                setCategoryColor('amber');
+                setShowCreateCategoryModal(true);
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg whitespace-nowrap cursor-pointer shadow-lg shadow-amber-500/10"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create New Category</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCategories.map((cat) => {
+              const assignedItems = state.menuItems.filter((m) => m.category === cat.name);
+              return (
+                <div
+                  key={cat.id}
+                  className="rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700/80 transition-all p-5 flex flex-col justify-between space-y-4 shadow-sm"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                          <Tag className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-100">{cat.name}</h4>
+                          <span className="text-[11px] font-mono text-amber-400/90 font-medium">
+                            {assignedItems.length} {assignedItems.length === 1 ? 'Menu Product' : 'Menu Products'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingCategory(cat);
+                            setEditCategoryName(cat.name);
+                            setEditCategoryDesc(cat.description || '');
+                            setEditCategoryColor(cat.badgeColor || 'amber');
+                          }}
+                          title="Edit Category"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeletingCategory(cat);
+                            const other = menuCategoriesList.find((c) => c.id !== cat.id);
+                            setDeleteFallbackCategory(other?.name || 'Signature Cocktails');
+                          }}
+                          title="Delete Category"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      {cat.description || 'Custom defined menu classification and POS department.'}
+                    </p>
+
+                    <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                      <div className="text-[11px] font-semibold text-slate-400 flex items-center justify-between">
+                        <span>Items in Category:</span>
+                        <span className="font-mono text-slate-500">{assignedItems.length} total</span>
+                      </div>
+                      {assignedItems.length === 0 ? (
+                        <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/60 text-[11px] text-slate-500 italic text-center">
+                          No menu items currently in this category
+                        </div>
+                      ) : (
+                        <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                          {assignedItems.slice(0, 4).map((item) => (
+                            <div
+                              key={item.id}
+                              className="px-2.5 py-1.5 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between text-xs"
+                            >
+                              <span className="text-slate-200 truncate pr-2">{item.name}</span>
+                              <span className="font-mono font-medium text-amber-400 shrink-0">
+                                {formatCurrency(item.price, state.settings.currency)}
+                              </span>
+                            </div>
+                          ))}
+                          {assignedItems.length > 4 && (
+                            <div className="text-[11px] text-slate-500 text-center font-mono pt-0.5">
+                              + {assignedItems.length - 4} more items
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCategory(cat);
+                        setEditCategoryName(cat.name);
+                        setEditCategoryDesc(cat.description || '');
+                        setEditCategoryColor(cat.badgeColor || 'amber');
+                      }}
+                      className="text-xs text-slate-400 hover:text-slate-200 font-medium cursor-pointer"
+                    >
+                      Configure Category
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewMenuCategory(cat.name);
+                        setShowNewMenuModal(true);
+                      }}
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-400 hover:text-amber-300 hover:bg-slate-800 rounded-md border border-amber-500/30 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Item</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1161,16 +1478,31 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-slate-300 mb-1">Menu Category</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-300">Menu Category</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategoryName('');
+                      setCategoryDesc('');
+                      setCategoryColor('amber');
+                      setShowCreateCategoryModal(true);
+                    }}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 cursor-pointer font-medium"
+                  >
+                    + New Category
+                  </button>
+                </div>
                 <select
                   value={newMenuCategory}
                   onChange={(e) => setNewMenuCategory(e.target.value as MenuCategory)}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100"
                 >
-                  <option value="Signature Cocktails">Signature Cocktails</option>
-                  <option value="Bistro Plates">Bistro Plates</option>
-                  <option value="Artisanal Shareables">Artisanal Shareables</option>
-                  <option value="Cellar & Reserve">Cellar & Reserve</option>
+                  {menuCategoriesList.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -1269,6 +1601,392 @@ export const InventoryRecipesView: React.FC<InventoryRecipesViewProps> = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL: CREATE MENU CATEGORY */}
+      {showCreateCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <FolderPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Create Menu Category</h3>
+                  <p className="text-[11px] text-slate-400">Define a new category for POS filtering and recipe management</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateCategoryModal(false)}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCategory} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Category Title</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="e.g. Artisanal Mocktails, Late Night Bites, Reserve Bottles"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Category Description</label>
+                <textarea
+                  rows={2}
+                  value={categoryDesc}
+                  onChange={(e) => setCategoryDesc(e.target.value)}
+                  placeholder="Summary of offerings, mixology notes, or preparation focus..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Badge Accent Color</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {[
+                    { id: 'amber', label: 'Gold', bg: 'bg-amber-500' },
+                    { id: 'emerald', label: 'Green', bg: 'bg-emerald-500' },
+                    { id: 'rose', label: 'Rose', bg: 'bg-rose-500' },
+                    { id: 'purple', label: 'Purple', bg: 'bg-purple-500' },
+                    { id: 'cyan', label: 'Cyan', bg: 'bg-cyan-500' },
+                    { id: 'blue', label: 'Blue', bg: 'bg-blue-500' },
+                  ].map((color) => (
+                    <button
+                      key={color.id}
+                      type="button"
+                      onClick={() => setCategoryColor(color.id)}
+                      className={`h-8 rounded-lg ${color.bg} flex items-center justify-center cursor-pointer transition-all ${
+                        categoryColor === color.id ? 'ring-2 ring-white scale-105' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      {categoryColor === color.id && <Check className="w-4 h-4 text-slate-950 stroke-[3]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateCategoryModal(false)}
+                  className="px-3.5 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold cursor-pointer shadow-lg shadow-amber-500/20"
+                >
+                  Save Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT MENU CATEGORY */}
+      {editingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Edit Category: {editingCategory.name}</h3>
+                  <p className="text-[11px] text-slate-400">Update classification title and display attributes</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingCategory(null)}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateCategory} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Category Title</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={editCategoryName}
+                  onChange={(e) => setEditCategoryName(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+                <p className="text-[11px] text-amber-400/80 mt-1">
+                  Renaming this category will automatically update all {state.menuItems.filter((m) => m.category === editingCategory.name).length} existing menu items in this category.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Category Description</label>
+                <textarea
+                  rows={2}
+                  value={editCategoryDesc}
+                  onChange={(e) => setEditCategoryDesc(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Badge Accent Color</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {[
+                    { id: 'amber', label: 'Gold', bg: 'bg-amber-500' },
+                    { id: 'emerald', label: 'Green', bg: 'bg-emerald-500' },
+                    { id: 'rose', label: 'Rose', bg: 'bg-rose-500' },
+                    { id: 'purple', label: 'Purple', bg: 'bg-purple-500' },
+                    { id: 'cyan', label: 'Cyan', bg: 'bg-cyan-500' },
+                    { id: 'blue', label: 'Blue', bg: 'bg-blue-500' },
+                  ].map((color) => (
+                    <button
+                      key={color.id}
+                      type="button"
+                      onClick={() => setEditCategoryColor(color.id)}
+                      className={`h-8 rounded-lg ${color.bg} flex items-center justify-center cursor-pointer transition-all ${
+                        editCategoryColor === color.id ? 'ring-2 ring-white scale-105' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      {editCategoryColor === color.id && <Check className="w-4 h-4 text-slate-950 stroke-[3]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingCategory(null)}
+                  className="px-3.5 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold cursor-pointer shadow-lg shadow-amber-500/20"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DELETE MENU CATEGORY */}
+      {deletingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Delete Category</h3>
+                  <p className="text-[11px] text-slate-400">Remove "{deletingCategory.name}" from your catalog</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingCategory(null)}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {(() => {
+                const assigned = state.menuItems.filter((m) => m.category === deletingCategory.name);
+                return (
+                  <>
+                    <p className="text-slate-300">
+                      Are you sure you want to remove the category <strong className="text-white">"{deletingCategory.name}"</strong>?
+                    </p>
+                    {assigned.length > 0 && (
+                      <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/60 space-y-2">
+                        <div className="flex items-center gap-2 text-amber-300 font-semibold">
+                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span>{assigned.length} menu items are currently in this category.</span>
+                        </div>
+                        <label className="block text-slate-300 font-medium">
+                          Select category to reassign these products to:
+                        </label>
+                        <select
+                          value={deleteFallbackCategory}
+                          onChange={(e) => setDeleteFallbackCategory(e.target.value)}
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100"
+                        >
+                          {menuCategoriesList
+                            .filter((c) => c.id !== deletingCategory.id)
+                            .map((cat) => (
+                              <option key={cat.id} value={cat.name}>
+                                {cat.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setDeletingCategory(null)}
+                  className="px-3.5 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteCategory}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold cursor-pointer shadow-lg shadow-rose-600/20"
+                >
+                  Confirm Delete & Reassign
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT MENU ITEM DETAILS */}
+      {editingMenuItemDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Edit Product: {editingMenuItemDetails.name}</h3>
+                  <p className="text-[11px] text-slate-400">Reassign category, update price, or change station</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingMenuItemDetails(null)}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMenuItemDetails} className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-slate-300 font-semibold mb-1">Product Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={editItemName}
+                    onChange={(e) => setEditItemName(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Category</label>
+                  <select
+                    value={editItemCategory}
+                    onChange={(e) => setEditItemCategory(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  >
+                    {menuCategoriesList.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Selling Price ({state.settings.currency.symbol})</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    required
+                    value={editItemPrice}
+                    onChange={(e) => setEditItemPrice(e.target.value)}
+                    className="w-full px-3 py-2 font-mono bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">SKU Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={editItemSku}
+                    onChange={(e) => setEditItemSku(e.target.value)}
+                    className="w-full px-3 py-2 font-mono bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Preparation Station</label>
+                  <select
+                    value={editItemStation}
+                    onChange={(e) => setEditItemStation(e.target.value as PrepStation)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="Lounge Mixology Bar">Lounge Mixology Bar</option>
+                    <option value="Bistro Hot Kitchen">Bistro Hot Kitchen</option>
+                    <option value="Garde Manger & Charcuterie">Garde Manger & Charcuterie</option>
+                    <option value="Sommelier Cellar">Sommelier Cellar</option>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-slate-300 font-semibold mb-1">Tasting & Recipe Description</label>
+                  <textarea
+                    rows={2}
+                    value={editItemDesc}
+                    onChange={(e) => setEditItemDesc(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingMenuItemDetails(null)}
+                  className="px-3.5 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold cursor-pointer shadow-lg shadow-amber-500/20"
+                >
+                  Save Product Details
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -53,7 +53,7 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [printContent, setPrintContent] = useState<PrintContentType | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showUserProfileModal, setShowUserProfileModal] = useState<boolean>(false);
 
   // Active Staff User

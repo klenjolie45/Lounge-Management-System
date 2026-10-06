@@ -36,6 +36,10 @@ function loadCloudState(): CloudSystemState {
         parsed.purchaseOrders = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.purchaseOrders));
         modified = true;
       }
+      if (!parsed.menuCategories || parsed.menuCategories.length === 0) {
+        parsed.menuCategories = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.menuCategories));
+        modified = true;
+      }
       if (modified) {
         saveCloudState(parsed);
       }

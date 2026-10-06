@@ -53,14 +53,6 @@ interface PosTerminalViewProps {
   onOpenPrint?: (content: PrintContentType) => void;
 }
 
-const CATEGORIES: Array<'All' | MenuCategory> = [
-  'All',
-  'Signature Cocktails',
-  'Bistro Plates',
-  'Artisanal Shareables',
-  'Cellar & Reserve',
-];
-
 const TABLES_LIST = [
   'Booth 01 · Velvet Corner',
   'Booth 02 · Amber Alcove',
@@ -84,9 +76,47 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'All' | MenuCategory>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showQuickAddCatModal, setShowQuickAddCatModal] = useState(false);
+  const [quickCatName, setQuickCatName] = useState('');
+  const [quickCatDesc, setQuickCatDesc] = useState('');
   const [cart, setCart] = useState<Array<{ menuItem: MenuItem; quantity: number; notes: string }>>(
     []
   );
+
+  const categoriesList = useMemo(() => {
+    const list: string[] = ['All'];
+    if (state.menuCategories && state.menuCategories.length > 0) {
+      state.menuCategories.forEach((c) => {
+        if (!list.includes(c.name)) list.push(c.name);
+      });
+    } else {
+      list.push('Signature Cocktails', 'Bistro Plates', 'Artisanal Shareables', 'Cellar & Reserve');
+    }
+    state.menuItems.forEach((m) => {
+      if (m.category && !list.includes(m.category)) {
+        list.push(m.category);
+      }
+    });
+    return list;
+  }, [state.menuCategories, state.menuItems]);
+
+  const handleQuickAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickCatName.trim()) return;
+    const catName = quickCatName.trim();
+    const newCat = {
+      id: `cat-${Date.now()}`,
+      name: catName,
+      description: quickCatDesc.trim() || `${catName} offerings`,
+      badgeColor: 'amber',
+      sortOrder: (state.menuCategories?.length || 0) + 1,
+    };
+    await onDispatch('CREATE_MENU_CATEGORY', { category: newCat }, `Created Menu Category "${catName}"`);
+    setSelectedCategory(catName);
+    setQuickCatName('');
+    setQuickCatDesc('');
+    setShowQuickAddCatModal(false);
+  };
   const [serviceMode, setServiceMode] = useState<ServiceMode>('Lounge Table');
   const [tableOrTab, setTableOrTab] = useState<string>(TABLES_LIST[0]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(
@@ -369,7 +399,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
         {/* Filter Controls & Live Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-800">
           <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
-            {CATEGORIES.map((cat) => (
+            {categoriesList.map((cat) => (
               <button
                 key={cat}
                 type="button"
@@ -383,6 +413,15 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
                 {cat}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setShowQuickAddCatModal(true)}
+              title="Add New Menu Category"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-slate-800 rounded-md transition-colors whitespace-nowrap shrink-0 border border-dashed border-amber-500/40 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Category</span>
+            </button>
           </div>
 
           <div className="relative min-w-[230px]">
@@ -944,6 +983,74 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
           >
             Review Ticket & Pay →
           </button>
+        </div>
+      )}
+
+      {/* QUICK ADD CATEGORY MODAL */}
+      {showQuickAddCatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Create New Menu Category</h3>
+                  <p className="text-[11px] text-slate-400">Add an interactive section to your POS & digital menu</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuickAddCatModal(false)}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddCategory} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Category Title</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={quickCatName}
+                  onChange={(e) => setQuickCatName(e.target.value)}
+                  placeholder="e.g. Late Night Bites, Mocktails, Dessert Wines"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Description (Optional)</label>
+                <input
+                  type="text"
+                  value={quickCatDesc}
+                  onChange={(e) => setQuickCatDesc(e.target.value)}
+                  placeholder="Short note or menu description..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCatModal(false)}
+                  className="px-3.5 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold cursor-pointer shadow-lg shadow-amber-500/20"
+                >
+                  Create & Select Category
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

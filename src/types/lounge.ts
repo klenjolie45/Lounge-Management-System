@@ -35,11 +35,21 @@ export interface RecipeIngredient {
   quantity: number;
 }
 
+export interface MenuCategoryDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  badgeColor?: string;
+  sortOrder?: number;
+}
+
 export type MenuCategory =
   | 'Signature Cocktails'
   | 'Bistro Plates'
   | 'Artisanal Shareables'
-  | 'Cellar & Reserve';
+  | 'Cellar & Reserve'
+  | string;
 
 export type PrepStation =
   | 'Lounge Mixology Bar'
@@ -369,7 +379,12 @@ export type SyncOperationType =
   | 'UPDATE_PURCHASE_ORDER'
   | 'RECEIVE_PURCHASE_ORDER'
   | 'CREATE_SUPPLIER'
-  | 'UPDATE_SUPPLIER';
+  | 'UPDATE_SUPPLIER'
+  | 'CREATE_MENU_CATEGORY'
+  | 'UPDATE_MENU_CATEGORY'
+  | 'DELETE_MENU_CATEGORY'
+  | 'UPDATE_MENU_ITEM'
+  | 'DELETE_MENU_ITEM';
 
 export interface SyncOperation {
   id: string;
@@ -404,4 +419,5 @@ export interface CloudSystemState {
   settings: GeneralSystemSettings;
   users: StaffUser[];
   activeUserId: string;
+  menuCategories: MenuCategoryDefinition[];
 }

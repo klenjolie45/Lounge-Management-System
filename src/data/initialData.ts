@@ -1,6 +1,8 @@
 import {
   CloudSystemState,
   GeneralSystemSettings,
+  MenuCategoryDefinition,
+  MenuItem,
   PurchaseOrder,
   StaffUser,
   Supplier,
@@ -82,6 +84,51 @@ export const DEFAULT_SETTINGS: GeneralSystemSettings = {
     },
   ],
 };
+
+export const DEFAULT_MENU_CATEGORIES: MenuCategoryDefinition[] = [
+  {
+    id: 'cat-cocktails',
+    name: 'Signature Cocktails',
+    description: 'Hand-crafted artisanal cocktails and craft mixology creations',
+    badgeColor: 'amber',
+    sortOrder: 1,
+  },
+  {
+    id: 'cat-bistro',
+    name: 'Bistro Plates',
+    description: 'Hot gourmet kitchen entrees, truffle sliders, and chef specialties',
+    badgeColor: 'emerald',
+    sortOrder: 2,
+  },
+  {
+    id: 'cat-shareables',
+    name: 'Artisanal Shareables',
+    description: 'Cave-aged charcuterie, burrata boards, and communal tapas',
+    badgeColor: 'rose',
+    sortOrder: 3,
+  },
+  {
+    id: 'cat-cellar',
+    name: 'Cellar & Reserve',
+    description: 'Grand Cru Champagnes, Barolo DOCG, and sommelier reserve pours',
+    badgeColor: 'purple',
+    sortOrder: 4,
+  },
+  {
+    id: 'cat-mocktails',
+    name: 'Mocktails & Tonics',
+    description: 'Zero-proof botanicals, pressed juices, and craft sodas',
+    badgeColor: 'cyan',
+    sortOrder: 5,
+  },
+  {
+    id: 'cat-desserts',
+    name: 'Desserts & Digestifs',
+    description: 'Artisanal confections, espresso desserts, and digestif pours',
+    badgeColor: 'amber',
+    sortOrder: 6,
+  },
+];
 
 export const DEFAULT_STAFF_USERS: StaffUser[] = [
   {
@@ -1158,6 +1205,7 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
   activeUserId: 'usr-admin-01',
   suppliers: DEFAULT_SUPPLIERS,
   purchaseOrders: DEFAULT_PURCHASE_ORDERS,
+  menuCategories: DEFAULT_MENU_CATEGORIES,
 };
 
 /**
@@ -1177,6 +1225,9 @@ export function applySyncOperation(
   next.version += 1;
   next.lastUpdated = op.timestamp;
   next.appliedOperationIds.push(op.id);
+  if (!next.menuCategories) {
+    next.menuCategories = JSON.parse(JSON.stringify(DEFAULT_MENU_CATEGORIES));
+  }
 
   switch (op.type) {
     case 'CREATE_SALE': {
@@ -1538,6 +1589,62 @@ export function applySyncOperation(
           next.settings.rolePermissions[r] = next.settings.rolePermissions[r].filter((k) => k !== permissionKey);
         }
       }
+      break;
+    }
+
+    case 'CREATE_MENU_CATEGORY': {
+      const existing = next.menuCategories.find(
+        (c) => c.name.trim().toLowerCase() === op.payload.category.name.trim().toLowerCase()
+      );
+      if (!existing) {
+        next.menuCategories.push(op.payload.category);
+      }
+      break;
+    }
+
+    case 'UPDATE_MENU_CATEGORY': {
+      const { categoryId, oldName, updates } = op.payload;
+      const cat = next.menuCategories.find((c) => c.id === categoryId || c.name === oldName);
+      if (cat) {
+        const prevName = cat.name;
+        Object.assign(cat, updates);
+        if (updates.name && updates.name !== prevName) {
+          next.menuItems.forEach((m) => {
+            if (m.category === prevName || m.category === oldName) {
+              m.category = updates.name;
+            }
+          });
+        }
+      }
+      break;
+    }
+
+    case 'DELETE_MENU_CATEGORY': {
+      const { categoryId, categoryName, fallbackCategory } = op.payload;
+      next.menuCategories = next.menuCategories.filter(
+        (c) => c.id !== categoryId && c.name !== categoryName
+      );
+      const targetCat = fallbackCategory || next.menuCategories[0]?.name || 'Signature Cocktails';
+      next.menuItems.forEach((m) => {
+        if (m.category === categoryName) {
+          m.category = targetCat;
+        }
+      });
+      break;
+    }
+
+    case 'UPDATE_MENU_ITEM': {
+      const { menuItemId, updates } = op.payload;
+      const item = next.menuItems.find((m) => m.id === menuItemId);
+      if (item) {
+        Object.assign(item, updates);
+      }
+      break;
+    }
+
+    case 'DELETE_MENU_ITEM': {
+      const { menuItemId } = op.payload;
+      next.menuItems = next.menuItems.filter((m) => m.id !== menuItemId);
       break;
     }
   }
