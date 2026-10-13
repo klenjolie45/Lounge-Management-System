@@ -195,7 +195,10 @@ export const PrintReceiptModal: React.FC<PrintReceiptModalProps> = ({
                 </div>
                 <div className="flex justify-between text-[10px] pt-1 text-neutral-600">
                   <span>Payment Tender:</span>
-                  <span className="font-bold">{content.order.paymentMethod}</span>
+                  <span className="font-bold">
+                    {content.order.paymentMethod}
+                    {content.order.paymentReference ? ` (${content.order.paymentReference})` : ''}
+                  </span>
                 </div>
                 {content.order.cashReceived && (
                   <>

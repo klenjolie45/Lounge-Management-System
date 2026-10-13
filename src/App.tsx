@@ -17,6 +17,7 @@ import { CustomerCrmView } from './components/CustomerCrmView';
 import { DailyRecipeUsageView } from './components/DailyRecipeUsageView';
 import { EodReconciliationView } from './components/EodReconciliationView';
 import { InventoryRecipesView } from './components/InventoryRecipesView';
+import { KitchenChefDisplayView } from './components/KitchenChefDisplayView';
 import { LoginPage } from './components/LoginPage';
 import { PosTerminalView } from './components/PosTerminalView';
 import { PrintContentType, PrintReceiptModal } from './components/PrintReceiptModal';
@@ -55,6 +56,28 @@ export default function App() {
   const [printContent, setPrintContent] = useState<PrintContentType | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showUserProfileModal, setShowUserProfileModal] = useState<boolean>(false);
+  const [catalogAction, setCatalogAction] = useState<
+    'new_category' | 'new_ingredient' | 'new_recipe' | 'new_non_recipe' | null
+  >(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('kofly_sidebar_minimized') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleSidebarCollapse = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('kofly_sidebar_minimized', String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   // Active Staff User
   const currentUser: StaffUser = useMemo(() => {
@@ -78,10 +101,11 @@ export default function App() {
       'theme-warm-bistro',
       'theme-light-ivory',
       'theme-light-wine-pink',
+      'theme-light-wine',
       'theme-light-navy-blue'
     );
     document.documentElement.classList.add(`theme-${theme.replace(/_/g, '-')}`);
-    if (theme === 'light_ivory' || theme === 'light_wine_pink' || theme === 'light_navy_blue') {
+    if (theme === 'light_ivory' || theme === 'light_wine_pink' || theme === 'light_wine' || theme === 'light_navy_blue') {
       document.documentElement.classList.remove('dark');
     } else {
       document.documentElement.classList.add('dark');
@@ -130,11 +154,11 @@ export default function App() {
     }
   };
 
-  const currentTheme = state.settings?.theme || 'dark_luxe';
+  const currentTheme = state.settings?.theme || 'light_wine_pink';
 
   const themeContainerBg =
-    currentTheme === 'light_wine_pink'
-      ? 'bg-[#FFF5F7] text-[#4C0519]'
+    currentTheme === 'light_wine_pink' || currentTheme === 'light_wine'
+      ? 'bg-[#FAF6F8] text-[#1E0A11]'
       : currentTheme === 'light_navy_blue'
       ? 'bg-[#F8FAFC] text-[#0F172A]'
       : currentTheme === 'light_ivory'
@@ -165,6 +189,7 @@ export default function App() {
       <Sidebar
         activeModule={activeModule}
         onSelectModule={setActiveModule}
+        onTriggerAction={(action) => setCatalogAction(action)}
         state={state}
         currentUser={currentUser}
         isOpenMobile={showMobileSidebar}
@@ -178,10 +203,12 @@ export default function App() {
         onLogout={() => setIsAuthenticated(false)}
         isOnline={isOnline}
         offlineQueueCount={offlineQueue.length}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={handleToggleSidebarCollapse}
       />
 
-      {/* Main Content Area (Offset by Sidebar on md+ screens) */}
-      <div className="flex-1 flex flex-col md:pl-64 min-w-0 transition-all">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 transition-all">
         {/* Top Header */}
         <TopHeader
           activeModule={activeModule}
@@ -194,6 +221,7 @@ export default function App() {
           }}
           onOpenUserProfile={() => setShowUserProfileModal(true)}
           onOpenCalculator={() => setActiveModule('calculator')}
+          onOpenKitchen={() => setActiveModule('kitchen')}
           onLogout={() => setIsAuthenticated(false)}
           onQuickPrint={handleQuickPrintFromHeader}
           isOnline={isOnline}
@@ -201,7 +229,7 @@ export default function App() {
 
         {/* Offline Mode Banner */}
         {!isOnline && (
-          <div className="bg-amber-950/80 border-b border-amber-700/60 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs text-amber-200 print:hidden">
+          <div className="bg-amber-950/80 border-b border-amber-700/60 px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3 text-xs text-amber-200 print:hidden">
             <div className="flex items-center gap-2">
               <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
@@ -220,8 +248,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Main Content Workspace */}
-        <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Main Content Workspace - Tightened Spacing */}
+        <main className="flex-1 w-full max-w-[1440px] px-3.5 sm:px-5 py-3.5 sm:py-4 space-y-4">
           {activeModule === 'pos' && (
             <PosTerminalView
               state={state}
@@ -231,7 +259,16 @@ export default function App() {
               onClearPreselectedCustomer={() => setPreselectedCustomer(null)}
               onDispatch={dispatchOperation}
               onNavigateToInventory={() => setActiveModule('inventory')}
+              onNavigateToKitchen={() => setActiveModule('kitchen')}
               onOpenPrint={(c) => setPrintContent(c)}
+            />
+          )}
+
+          {activeModule === 'kitchen' && (
+            <KitchenChefDisplayView
+              state={state}
+              onDispatch={dispatchOperation}
+              onNavigateToPos={() => setActiveModule('pos')}
             />
           )}
 
@@ -249,8 +286,56 @@ export default function App() {
             />
           )}
 
+          {activeModule === 'categories' && (
+            <InventoryRecipesView
+              state={state}
+              onDispatch={dispatchOperation}
+              initialSubView="categories"
+              initialAction={catalogAction}
+              onClearInitialAction={() => setCatalogAction(null)}
+            />
+          )}
+
+          {activeModule === 'raw_ingredients' && (
+            <InventoryRecipesView
+              state={state}
+              onDispatch={dispatchOperation}
+              initialSubView="ingredients"
+              initialAction={catalogAction}
+              onClearInitialAction={() => setCatalogAction(null)}
+            />
+          )}
+
+          {activeModule === 'recipe_products' && (
+            <InventoryRecipesView
+              state={state}
+              onDispatch={dispatchOperation}
+              initialSubView="recipes"
+              initialRecipeFilterTab="recipes"
+              initialAction={catalogAction}
+              onClearInitialAction={() => setCatalogAction(null)}
+            />
+          )}
+
+          {activeModule === 'non_recipe_products' && (
+            <InventoryRecipesView
+              state={state}
+              onDispatch={dispatchOperation}
+              initialSubView="recipes"
+              initialRecipeFilterTab="non_recipes"
+              initialAction={catalogAction}
+              onClearInitialAction={() => setCatalogAction(null)}
+            />
+          )}
+
           {activeModule === 'inventory' && (
-            <InventoryRecipesView state={state} onDispatch={dispatchOperation} />
+            <InventoryRecipesView
+              state={state}
+              onDispatch={dispatchOperation}
+              initialSubView="ingredients"
+              initialAction={catalogAction}
+              onClearInitialAction={() => setCatalogAction(null)}
+            />
           )}
 
           {activeModule === 'purchase_orders' && (

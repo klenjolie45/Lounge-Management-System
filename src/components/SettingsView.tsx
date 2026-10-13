@@ -415,9 +415,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 },
                 {
                   id: 'light_wine_pink' as ThemeMode,
-                  name: 'White & Wine-Pink (Light)',
-                  desc: 'Delicate white-rose background with rich burgundy wine accents, berry highlights, and high-contrast dark plum typography.',
-                  bgClass: 'bg-rose-50 border-rose-400',
+                  name: 'Professional Light Wine',
+                  desc: 'Crisp ivory-rose canvas (#FAF6F8) with rich Bordeaux wine accents, high-contrast dark plum typography, and clean white cards. Zero text/background conflict.',
+                  bgClass: 'bg-[#FAF6F8] border-[#881337]',
                 },
                 {
                   id: 'light_navy_blue' as ThemeMode,

@@ -12,7 +12,16 @@ export type StorageZone =
   | 'Dry Bistro Pantry'
   | 'Temperature Cellar';
 
-export type UnitType = 'ml' | 'g' | 'pc' | 'oz';
+export type UnitType = 'ml' | 'cl' | 'g' | 'kg' | 'pc' | 'oz';
+
+export interface IngredientPackaging {
+  unitSizeValue: number; // e.g. 50 (for 50 cl bottle)
+  unitSizeUnit: 'cl' | 'ml' | 'g' | 'kg' | 'pc' | 'oz'; // e.g. 'cl'
+  baseUnitsPerPiece: number; // e.g. 500 (since 50 cl = 500 ml)
+  piecesPerCarton: number; // e.g. 12 (12 bottles per carton)
+  packLabel: string; // e.g. 'bottle', 'can', 'pack', 'piece', 'tub', 'block'
+  cartonLabel: string; // e.g. 'carton', 'case', 'box', 'crate'
+}
 
 export interface Ingredient {
   id: string;
@@ -28,6 +37,7 @@ export interface Ingredient {
   costPerUnit: number;
   supplier: string;
   lastRestockedAt: string;
+  packaging?: IngredientPackaging;
 }
 
 export interface RecipeIngredient {
@@ -54,6 +64,8 @@ export type MenuCategory =
 export type PrepStation =
   | 'Lounge Mixology Bar'
   | 'Bistro Hot Kitchen'
+  | 'Kitchen Hot Line'
+  | 'Cold Pantry'
   | 'Garde Manger & Charcuterie'
   | 'Sommelier Cellar';
 
@@ -67,6 +79,9 @@ export interface MenuItem {
   prepStation: PrepStation;
   imageKey?: 'old_fashioned' | 'wagyu_sliders' | 'espresso_martini' | 'burrata_charcuterie';
   recipe: RecipeIngredient[];
+  isRecipeProduct?: boolean; // false for direct-sale / non-recipe products
+  directStockIngredientId?: string; // optional link to direct inventory SKU
+  directStockUnitsPerSale?: number; // e.g. 1 unit/bottle deducted per sale
 }
 
 export interface OrderItem {
@@ -88,7 +103,12 @@ export interface IngredientDeductionRecord {
 }
 
 export type ServiceMode = 'Lounge Table' | 'Bar Tab' | 'Bistro Dining' | 'VIP Booth';
-export type PaymentMethod = 'Card Terminal' | 'Cash Drawer' | 'VIP House Account' | 'Split Tender';
+export type PaymentMethod =
+  | 'Card Terminal'
+  | 'Cash Drawer'
+  | 'Transfer'
+  | 'VIP House Account'
+  | 'Split Tender';
 
 export interface SaleOrder {
   id: string;
@@ -107,6 +127,7 @@ export interface SaleOrder {
   totalAmount: number;
   totalCogs: number;
   paymentMethod: PaymentMethod;
+  paymentReference?: string;
   cashReceived?: number;
   changeGiven?: number;
   deductions: IngredientDeductionRecord[];
@@ -204,6 +225,7 @@ export type ThemeMode =
   | 'warm_bistro'
   | 'light_ivory'
   | 'light_wine_pink'
+  | 'light_wine'
   | 'light_navy_blue';
 
 export interface Supplier {
@@ -358,6 +380,33 @@ export interface EodReconciliation {
   status: 'RECONCILED_BALANCED' | 'VARIANCE_FLAGGED';
 }
 
+export type KitchenTicketStatus = 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+export type KitchenTicketPriority = 'normal' | 'rush' | 'vip';
+
+export interface KitchenTicketItem {
+  menuItemId?: string;
+  name: string;
+  quantity: number;
+  station?: PrepStation;
+  notes?: string;
+}
+
+export interface KitchenTicket {
+  id: string;
+  ticketNumber: string;
+  orderNumber?: string;
+  createdAt: string;
+  updatedAt?: string;
+  serviceMode: ServiceMode;
+  serverName: string;
+  customerName?: string;
+  status: KitchenTicketStatus;
+  priority: KitchenTicketPriority;
+  items: KitchenTicketItem[];
+  notes?: string;
+  prepTimeMinutes?: number;
+}
+
 export type SyncOperationType =
   | 'CREATE_SALE'
   | 'RESTOCK_INGREDIENT'
@@ -383,8 +432,13 @@ export type SyncOperationType =
   | 'CREATE_MENU_CATEGORY'
   | 'UPDATE_MENU_CATEGORY'
   | 'DELETE_MENU_CATEGORY'
+  | 'UPDATE_INGREDIENT'
+  | 'DELETE_INGREDIENT'
   | 'UPDATE_MENU_ITEM'
-  | 'DELETE_MENU_ITEM';
+  | 'DELETE_MENU_ITEM'
+  | 'CREATE_KITCHEN_TICKET'
+  | 'UPDATE_KITCHEN_TICKET_STATUS'
+  | 'DELETE_KITCHEN_TICKET';
 
 export interface SyncOperation {
   id: string;
@@ -420,4 +474,5 @@ export interface CloudSystemState {
   users: StaffUser[];
   activeUserId: string;
   menuCategories: MenuCategoryDefinition[];
+  kitchenTickets: KitchenTicket[];
 }

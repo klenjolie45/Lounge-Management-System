@@ -1,6 +1,7 @@
 import {
   CloudSystemState,
   GeneralSystemSettings,
+  KitchenTicket,
   MenuCategoryDefinition,
   MenuItem,
   PurchaseOrder,
@@ -12,7 +13,7 @@ import {
 import { ROLE_DEFAULT_PERMISSIONS } from '../utils/formatters';
 
 export const DEFAULT_SETTINGS: GeneralSystemSettings = {
-  theme: 'dark_luxe',
+  theme: 'light_wine_pink',
   branding: {
     businessName: 'Kofly Lounge & Bistro',
     tagline: 'Craft Mixology & Culinary Bar',
@@ -358,6 +359,58 @@ export const DEFAULT_PURCHASE_ORDERS: PurchaseOrder[] = [
   },
 ];
 
+export const DEFAULT_KITCHEN_TICKETS: KitchenTicket[] = [
+  {
+    id: 'kt-101',
+    ticketNumber: 'K-101',
+    orderNumber: 'ORD-8942',
+    createdAt: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+    serviceMode: 'VIP Booth',
+    serverName: 'Mateo S.',
+    customerName: 'Marcus Sterling',
+    status: 'preparing',
+    priority: 'rush',
+    items: [
+      { name: 'Truffle Wagyu Sliders', quantity: 2, station: 'Kitchen Hot Line', notes: 'Medium rare, extra truffle aioli' },
+      { name: 'Smoked Honey Old Fashioned', quantity: 2, station: 'Lounge Mixology Bar', notes: 'Extra smoked cedar' },
+    ],
+    notes: 'VIP Guest · Rush ticket',
+    prepTimeMinutes: 6,
+  },
+  {
+    id: 'kt-102',
+    ticketNumber: 'K-102',
+    orderNumber: 'ORD-8943',
+    createdAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+    serviceMode: 'Lounge Table',
+    serverName: 'Claire D.',
+    customerName: 'Elena Rostova',
+    status: 'pending',
+    priority: 'normal',
+    items: [
+      { name: 'Artisanal Burrata & Truffle Honey', quantity: 1, station: 'Cold Pantry', notes: 'Gluten-free crackers on side' },
+      { name: 'Espresso Velvet Martini', quantity: 2, station: 'Lounge Mixology Bar' },
+    ],
+    notes: 'Table 03 · Please serve burrata first',
+  },
+  {
+    id: 'kt-103',
+    ticketNumber: 'K-103',
+    orderNumber: 'ORD-8941',
+    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+    serviceMode: 'Bar Tab',
+    serverName: 'Fadray Bukola',
+    customerName: 'Walk-in Guest',
+    status: 'ready',
+    priority: 'normal',
+    items: [
+      { name: 'Kentucky Small-Batch Bourbon (50cl Bottle Service)', quantity: 1, station: 'Lounge Mixology Bar', notes: 'Two rocks glasses, large clear ice cube' },
+    ],
+    notes: 'Ready at bar counter pass',
+    prepTimeMinutes: 4,
+  },
+];
+
 export const INITIAL_CLOUD_STATE: CloudSystemState = {
   version: 14,
   lastUpdated: '2026-10-05T02:30:00.000Z',
@@ -377,6 +430,14 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
       costPerUnit: 0.065,
       supplier: 'Heritage Distillers Co.',
       lastRestockedAt: '2026-10-03T14:00:00.000Z',
+      packaging: {
+        unitSizeValue: 50,
+        unitSizeUnit: 'cl',
+        baseUnitsPerPiece: 500,
+        piecesPerCarton: 12,
+        packLabel: 'bottle',
+        cartonLabel: 'carton',
+      },
     },
     {
       id: 'ing-demerara',
@@ -633,6 +694,75 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
       supplier: 'Piedmont Estates Imports',
       lastRestockedAt: '2026-10-01T17:00:00.000Z',
     },
+    {
+      id: 'ing-sparkling-water',
+      name: 'San Pellegrino Sparkling Mineral Water (750ml)',
+      sku: 'SFT-SP-03',
+      category: 'Mixers & Garnishes',
+      storageZone: 'Main Backbar',
+      currentStock: 36,
+      parLevel: 24,
+      criticalLevel: 12,
+      maxCapacity: 96,
+      unit: 'pc',
+      costPerUnit: 2.2,
+      supplier: 'Vesper Bar Provisions',
+      lastRestockedAt: '2026-10-04T10:00:00.000Z',
+      packaging: {
+        unitSizeValue: 1,
+        unitSizeUnit: 'pc',
+        baseUnitsPerPiece: 1,
+        piecesPerCarton: 12,
+        packLabel: 'bottle',
+        cartonLabel: 'case',
+      },
+    },
+    {
+      id: 'ing-craft-beer',
+      name: 'Obsidian Imperial Stout (Chilled Can 330ml)',
+      sku: 'BEER-OBS-01',
+      category: 'Spirits & Liqueurs',
+      storageZone: 'Walk-in Cold Room',
+      currentStock: 48,
+      parLevel: 24,
+      criticalLevel: 12,
+      maxCapacity: 120,
+      unit: 'pc',
+      costPerUnit: 3.5,
+      supplier: 'Heritage Distillers Co.',
+      lastRestockedAt: '2026-10-04T10:00:00.000Z',
+      packaging: {
+        unitSizeValue: 1,
+        unitSizeUnit: 'pc',
+        baseUnitsPerPiece: 1,
+        piecesPerCarton: 24,
+        packLabel: 'can',
+        cartonLabel: 'case',
+      },
+    },
+    {
+      id: 'ing-cohiba-cigar',
+      name: 'Cohiba Siglo VI Reserve Cigar',
+      sku: 'CGR-COH-01',
+      category: 'Dry Pantry & Bakery',
+      storageZone: 'Dry Bistro Pantry',
+      currentStock: 18,
+      parLevel: 10,
+      criticalLevel: 5,
+      maxCapacity: 50,
+      unit: 'pc',
+      costPerUnit: 18.0,
+      supplier: 'Heritage Distillers Co.',
+      lastRestockedAt: '2026-10-04T10:00:00.000Z',
+      packaging: {
+        unitSizeValue: 1,
+        unitSizeUnit: 'pc',
+        baseUnitsPerPiece: 1,
+        piecesPerCarton: 10,
+        packLabel: 'cigar',
+        cartonLabel: 'box',
+      },
+    },
   ],
   menuItems: [
     {
@@ -752,6 +882,72 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
       recipe: [
         { ingredientId: 'ing-barolo', quantity: 150 },
       ],
+      isRecipeProduct: true,
+    },
+    {
+      id: 'menu-bourbon-bottle',
+      name: 'Kentucky Small-Batch Bourbon (50cl Bottle Service)',
+      sku: 'BOT-BRB-01',
+      category: 'Cellar & Reserve',
+      price: 180,
+      description: 'Exclusive small-batch Kentucky Bourbon 50 cl (500ml) whole bottle service with artisanal ice sphere and crystal tumblers.',
+      prepStation: 'Lounge Mixology Bar',
+      recipe: [],
+      isRecipeProduct: false,
+      directStockIngredientId: 'ing-bourbon',
+      directStockUnitsPerSale: 500,
+    },
+    {
+      id: 'menu-champagne-bottle',
+      name: 'Dom Pérignon Vintage Reserve (Whole Bottle)',
+      sku: 'BOT-DOM-01',
+      category: 'Cellar & Reserve',
+      price: 350,
+      description: 'Direct whole 750ml bottle service with sommelier tableside uncorking and crystal flutes.',
+      prepStation: 'Sommelier Cellar',
+      recipe: [],
+      isRecipeProduct: false,
+      directStockIngredientId: 'ing-champagne',
+      directStockUnitsPerSale: 750,
+    },
+    {
+      id: 'menu-sparkling-water',
+      name: 'San Pellegrino Sparkling Mineral Water (750ml)',
+      sku: 'SFT-SP-03',
+      category: 'Mocktails & Tonics',
+      price: 9,
+      description: 'Chilled Italian sparkling mineral water served with fresh lemon wheel.',
+      prepStation: 'Lounge Mixology Bar',
+      recipe: [],
+      isRecipeProduct: false,
+      directStockIngredientId: 'ing-sparkling-water',
+      directStockUnitsPerSale: 1,
+    },
+    {
+      id: 'menu-craft-beer',
+      name: 'Obsidian Imperial Stout (Chilled Can 330ml)',
+      sku: 'BEER-OBS-01',
+      category: 'Signature Cocktails',
+      price: 14,
+      description: 'Dark roasted artisanal chocolate & espresso stout in chilled can with iced glass.',
+      prepStation: 'Lounge Mixology Bar',
+      recipe: [],
+      isRecipeProduct: false,
+      directStockIngredientId: 'ing-craft-beer',
+      directStockUnitsPerSale: 1,
+    },
+    {
+      id: 'menu-cohiba-cigar',
+      name: 'Cohiba Siglo VI Reserve Cigar',
+      sku: 'CGR-COH-01',
+      category: 'Artisanal Shareables',
+      price: 65,
+      description: 'Authentic hand-rolled reserve cigar with cedar matchstick and lounge cutter service.',
+      prepStation: 'Garde Manger & Charcuterie',
+      recipe: [],
+      isRecipeProduct: false,
+      directStockIngredientId: 'ing-cohiba-cigar',
+      directStockUnitsPerSale: 1,
     },
   ],
   customers: [
@@ -1029,7 +1225,8 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
       discountAmount: 0,
       totalAmount: 78.59,
       totalCogs: 17.49,
-      paymentMethod: 'Card Terminal',
+      paymentMethod: 'Transfer',
+      paymentReference: 'TRF-INSTANT-8924',
       deductions: [
         {
           ingredientId: 'ing-gin',
@@ -1206,6 +1403,7 @@ export const INITIAL_CLOUD_STATE: CloudSystemState = {
   suppliers: DEFAULT_SUPPLIERS,
   purchaseOrders: DEFAULT_PURCHASE_ORDERS,
   menuCategories: DEFAULT_MENU_CATEGORIES,
+  kitchenTickets: DEFAULT_KITCHEN_TICKETS,
 };
 
 /**
@@ -1228,6 +1426,9 @@ export function applySyncOperation(
   if (!next.menuCategories) {
     next.menuCategories = JSON.parse(JSON.stringify(DEFAULT_MENU_CATEGORIES));
   }
+  if (!next.kitchenTickets) {
+    next.kitchenTickets = JSON.parse(JSON.stringify(DEFAULT_KITCHEN_TICKETS));
+  }
 
   switch (op.type) {
     case 'CREATE_SALE': {
@@ -1237,7 +1438,7 @@ export function applySyncOperation(
       // Automatically deduct recipe ingredients for each item sold
       for (const lineItem of orderPayload.items) {
         const menuProduct = next.menuItems.find((m) => m.id === lineItem.menuItemId);
-        if (menuProduct && menuProduct.recipe) {
+        if (menuProduct && menuProduct.recipe && menuProduct.recipe.length > 0) {
           for (const recipeComp of menuProduct.recipe) {
             const ing = next.ingredients.find((i) => i.id === recipeComp.ingredientId);
             if (ing) {
@@ -1279,6 +1480,41 @@ export function applySyncOperation(
                 actor: `${orderPayload.serverName} · ${op.deviceId}`,
               });
             }
+          }
+        } else if (
+          menuProduct &&
+          (!menuProduct.recipe || menuProduct.recipe.length === 0) &&
+          menuProduct.directStockIngredientId
+        ) {
+          const ing = next.ingredients.find((i) => i.id === menuProduct.directStockIngredientId);
+          if (ing) {
+            const units = menuProduct.directStockUnitsPerSale || 1;
+            const totalToDeduct = Number((units * lineItem.quantity).toFixed(2));
+            ing.currentStock = Math.max(0, Number((ing.currentStock - totalToDeduct).toFixed(2)));
+            const costImpact = Number((totalToDeduct * ing.costPerUnit).toFixed(2));
+
+            deductions.push({
+              ingredientId: ing.id,
+              ingredientName: ing.name,
+              quantityDeducted: totalToDeduct,
+              unit: ing.unit,
+              remainingStockAfter: ing.currentStock,
+              costImpact,
+            });
+
+            next.stockMovements.unshift({
+              id: `mov-${op.id}-${ing.id}-${lineItem.menuItemId}`,
+              timestamp: op.timestamp,
+              ingredientId: ing.id,
+              ingredientName: ing.name,
+              type: 'SALE_DEDUCTION',
+              delta: -totalToDeduct,
+              unit: ing.unit,
+              balanceAfter: ing.currentStock,
+              costImpact,
+              reference: `Order ${orderPayload.orderNumber} (Direct Sale: ${lineItem.quantity}x ${lineItem.name})`,
+              actor: `${orderPayload.serverName} · ${op.deviceId}`,
+            });
           }
         }
       }
@@ -1372,6 +1608,21 @@ export function applySyncOperation(
         reference: 'Initial SKU Stock Onboarding',
         actor: `Inventory Admin · ${op.deviceId}`,
       });
+      break;
+    }
+
+    case 'UPDATE_INGREDIENT': {
+      const { ingredientId, updates } = op.payload;
+      const ing = next.ingredients.find((i) => i.id === ingredientId);
+      if (ing) {
+        Object.assign(ing, updates);
+      }
+      break;
+    }
+
+    case 'DELETE_INGREDIENT': {
+      const { ingredientId } = op.payload;
+      next.ingredients = next.ingredients.filter((i) => i.id !== ingredientId);
       break;
     }
 
@@ -1645,6 +1896,36 @@ export function applySyncOperation(
     case 'DELETE_MENU_ITEM': {
       const { menuItemId } = op.payload;
       next.menuItems = next.menuItems.filter((m) => m.id !== menuItemId);
+      break;
+    }
+
+    case 'CREATE_KITCHEN_TICKET': {
+      const ticket = op.payload.ticket;
+      if (!next.kitchenTickets) next.kitchenTickets = [];
+      next.kitchenTickets.unshift(ticket);
+      break;
+    }
+
+    case 'UPDATE_KITCHEN_TICKET_STATUS': {
+      const { ticketId, status, prepTimeMinutes } = op.payload;
+      if (next.kitchenTickets) {
+        const ticket = next.kitchenTickets.find((t) => t.id === ticketId);
+        if (ticket) {
+          ticket.status = status;
+          ticket.updatedAt = op.timestamp;
+          if (prepTimeMinutes !== undefined) {
+            ticket.prepTimeMinutes = prepTimeMinutes;
+          }
+        }
+      }
+      break;
+    }
+
+    case 'DELETE_KITCHEN_TICKET': {
+      const { ticketId } = op.payload;
+      if (next.kitchenTickets) {
+        next.kitchenTickets = next.kitchenTickets.filter((t) => t.id !== ticketId);
+      }
       break;
     }
   }

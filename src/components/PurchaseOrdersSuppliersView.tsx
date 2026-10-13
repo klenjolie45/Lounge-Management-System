@@ -68,7 +68,15 @@ export const PurchaseOrdersSuppliersView: React.FC<PurchaseOrdersSuppliersViewPr
   const [newPoExpectedDate, setNewPoExpectedDate] = useState('');
   const [newPoNotes, setNewPoNotes] = useState('');
   const [newPoShippingFee, setNewPoShippingFee] = useState<number>(0);
-  const [newPoTaxRate, setNewPoTaxRate] = useState<number>(state.settings.tax.salesTaxRate || 8.75);
+  const [newPoTaxRate, setNewPoTaxRate] = useState<number>(
+    typeof state.settings?.tax?.salesTaxRate === 'number' ? state.settings.tax.salesTaxRate : 7.5
+  );
+
+  React.useEffect(() => {
+    if (typeof state.settings?.tax?.salesTaxRate === 'number') {
+      setNewPoTaxRate(state.settings.tax.salesTaxRate);
+    }
+  }, [state.settings?.tax?.salesTaxRate]);
   const [newPoItems, setNewPoItems] = useState<PurchaseOrderItem[]>([]);
   const [selectedIngredientToAdd, setSelectedIngredientToAdd] = useState('');
   const [addQty, setAddQty] = useState<number>(1000);
@@ -91,7 +99,34 @@ export const PurchaseOrdersSuppliersView: React.FC<PurchaseOrdersSuppliersViewPr
   const suppliers = state.suppliers || [];
   const purchaseOrders = state.purchaseOrders || [];
 
-  // Low stock calculation
+  // Map of ingredientId -> non-recipe MenuItem
+  const nonRecipeLinkedMap = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const m of state.menuItems) {
+      if (!m.isRecipeProduct || (!m.recipe || m.recipe.length === 0)) {
+        if (m.directStockIngredientId) {
+          map.set(m.directStockIngredientId, m);
+        }
+        const bySku = state.ingredients.find(
+          (i) => i.sku === m.sku || i.name.toLowerCase() === m.name.toLowerCase()
+        );
+        if (bySku) {
+          map.set(bySku.id, m);
+        }
+      }
+    }
+    return map;
+  }, [state.menuItems, state.ingredients]);
+
+  const nonRecipeStockItems = useMemo(() => {
+    return state.ingredients.filter((i) => nonRecipeLinkedMap.has(i.id));
+  }, [state.ingredients, nonRecipeLinkedMap]);
+
+  const rawIngredients = useMemo(() => {
+    return state.ingredients.filter((i) => !nonRecipeLinkedMap.has(i.id));
+  }, [state.ingredients, nonRecipeLinkedMap]);
+
+  // Low stock calculation (includes both raw and non-recipe items)
   const lowStockIngredients = useMemo(() => {
     return state.ingredients.filter((i) => i.currentStock <= i.parLevel);
   }, [state.ingredients]);
@@ -638,9 +673,16 @@ export const PurchaseOrdersSuppliersView: React.FC<PurchaseOrdersSuppliersViewPr
                             className="p-1.5 rounded bg-slate-900 border border-slate-800 text-[11px] flex justify-between items-center"
                           >
                             <div className="truncate mr-2">
-                              <span className="font-medium text-slate-200 truncate block">
-                                {it.ingredientName}
-                              </span>
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="font-medium text-slate-200 truncate">
+                                  {it.ingredientName}
+                                </span>
+                                {nonRecipeLinkedMap.has(it.ingredientId) && (
+                                  <span className="px-1 py-0.2 rounded text-[8px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                                    Direct Product
+                                  </span>
+                                )}
+                              </div>
                               <span className="text-slate-400 text-[10px]">
                                 {it.quantityOrdered} {it.unit} @ {formatCurrency(it.unitCost, state.settings.currency)}/{it.unit}
                               </span>
@@ -880,15 +922,39 @@ export const PurchaseOrdersSuppliersView: React.FC<PurchaseOrdersSuppliersViewPr
               <div className="flex flex-col sm:flex-row items-center gap-2">
                 <select
                   value={selectedIngredientToAdd}
-                  onChange={(e) => setSelectedIngredientToAdd(e.target.value)}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedIngredientToAdd(id);
+                    const ing = state.ingredients.find((i) => i.id === id);
+                    if (ing) {
+                      if (ing.unit === 'pc') {
+                        setAddQty(ing.packaging?.piecesPerCarton || 12);
+                      } else if (ing.packaging?.baseUnitsPerPiece) {
+                        setAddQty(ing.packaging.baseUnitsPerPiece * (ing.packaging.piecesPerCarton || 1));
+                      } else {
+                        setAddQty(1000);
+                      }
+                    }
+                  }}
                   className="w-full sm:flex-1 px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-100"
                 >
-                  <option value="">-- Choose Raw Ingredient SKU --</option>
-                  {state.ingredients.map((ing) => (
-                    <option key={ing.id} value={ing.id}>
-                      {ing.name} (Stock: {ing.currentStock} {ing.unit}, Par: {ing.parLevel})
-                    </option>
-                  ))}
+                  <option value="">-- Choose Stock Item to Order --</option>
+                  {nonRecipeStockItems.length > 0 && (
+                    <optgroup label="Non-Recipe Retail Products (Direct Sale / Bottles & Cans)">
+                      {nonRecipeStockItems.map((ing) => (
+                        <option key={ing.id} value={ing.id}>
+                          {ing.name} ({ing.sku} · Stock: {ing.currentStock} {ing.unit}, Par: {ing.parLevel})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Raw Bar & Kitchen Ingredients">
+                    {rawIngredients.map((ing) => (
+                      <option key={ing.id} value={ing.id}>
+                        {ing.name} ({ing.sku} · Stock: {ing.currentStock} {ing.unit}, Par: {ing.parLevel})
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -919,7 +985,14 @@ export const PurchaseOrdersSuppliersView: React.FC<PurchaseOrdersSuppliersViewPr
                     className="p-2.5 flex items-center justify-between text-xs gap-3"
                   >
                     <div className="min-w-0">
-                      <div className="font-semibold text-slate-100 truncate">{it.ingredientName}</div>
+                      <div className="font-semibold text-slate-100 truncate flex items-center gap-1.5">
+                        <span>{it.ingredientName}</span>
+                        {nonRecipeLinkedMap.has(it.ingredientId) && (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            Non-Recipe Product
+                          </span>
+                        )}
+                      </div>
                       <div className="text-[10px] text-slate-400 font-mono">
                         {it.quantityOrdered} {it.unit} × {formatCurrency(it.unitCost, state.settings.currency)}/{it.unit}
                       </div>

@@ -16,7 +16,15 @@
       "unit": "ml",
       "costPerUnit": 0.065,
       "supplier": "Heritage Distillers Co.",
-      "lastRestockedAt": "2026-10-03T14:00:00.000Z"
+      "lastRestockedAt": "2026-10-03T14:00:00.000Z",
+      "packaging": {
+        "unitSizeValue": 50,
+        "unitSizeUnit": "cl",
+        "baseUnitsPerPiece": 500,
+        "piecesPerCarton": 12,
+        "packLabel": "bottle",
+        "cartonLabel": "carton"
+      }
     },
     {
       "id": "ing-demerara",
@@ -470,6 +478,65 @@
           "quantity": 150
         }
       ]
+    },
+    {
+      "id": "menu-bourbon-bottle",
+      "name": "Kentucky Small-Batch Bourbon (50cl Bottle Service)",
+      "sku": "BOT-BRB-01",
+      "category": "Cellar & Reserve",
+      "price": 180,
+      "description": "Exclusive small-batch Kentucky Bourbon 50 cl (500ml) whole bottle service with artisanal ice sphere and crystal tumblers.",
+      "prepStation": "Lounge Mixology Bar",
+      "recipe": [],
+      "isRecipeProduct": false,
+      "directStockIngredientId": "ing-bourbon",
+      "directStockUnitsPerSale": 500
+    },
+    {
+      "id": "menu-champagne-bottle",
+      "name": "Dom Pérignon Vintage Reserve (Whole Bottle)",
+      "sku": "BOT-DOM-01",
+      "category": "Cellar & Reserve",
+      "price": 350,
+      "description": "Direct whole 750ml bottle service with sommelier tableside uncorking and crystal flutes.",
+      "prepStation": "Sommelier Cellar",
+      "recipe": [],
+      "isRecipeProduct": false,
+      "directStockIngredientId": "ing-champagne",
+      "directStockUnitsPerSale": 750
+    },
+    {
+      "id": "menu-sparkling-water",
+      "name": "San Pellegrino Sparkling Mineral Water (750ml)",
+      "sku": "SFT-SP-03",
+      "category": "Mocktails & Tonics",
+      "price": 9,
+      "description": "Chilled Italian sparkling mineral water served with fresh lemon wheel.",
+      "prepStation": "Lounge Mixology Bar",
+      "recipe": [],
+      "isRecipeProduct": false
+    },
+    {
+      "id": "menu-craft-beer",
+      "name": "Obsidian Imperial Stout (Chilled Can 330ml)",
+      "sku": "BEER-OBS-01",
+      "category": "Signature Cocktails",
+      "price": 14,
+      "description": "Dark roasted artisanal chocolate & espresso stout in chilled can with iced glass.",
+      "prepStation": "Lounge Mixology Bar",
+      "recipe": [],
+      "isRecipeProduct": false
+    },
+    {
+      "id": "menu-cohiba-cigar",
+      "name": "Cohiba Siglo VI Reserve Cigar",
+      "sku": "CGR-COH-01",
+      "category": "Artisanal Shareables",
+      "price": 65,
+      "description": "Authentic hand-rolled reserve cigar with cedar matchstick and lounge cutter service.",
+      "prepStation": "Garde Manger & Charcuterie",
+      "recipe": [],
+      "isRecipeProduct": false
     }
   ],
   "customers": [

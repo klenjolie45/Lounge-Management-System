@@ -65,59 +65,222 @@ html.theme-light-ivory main textarea {
   color: #0F172A !important;
 }
 
-/* White and Wine-Pink Theme (Light) */
+/* Professional White & Wine Theme (Light) - Zero Text & Background Conflict */
+html.theme-light-wine body,
 html.theme-light-wine-pink body {
-  background-color: #FFF5F7;
-  color: #4C0519;
+  background-color: #FAF6F8;
+  color: #1E0A11;
 }
 
-html.theme-light-wine-pink .bg-slate-950,
+html.theme-light-wine,
+html.theme-light-wine-pink {
+  color-scheme: light;
+}
+
+html.theme-light-wine main,
+html.theme-light-wine-pink main {
+  background-color: #FAF6F8;
+  color: #1E0A11;
+}
+
+/* Shell & Layout Components */
+html.theme-light-wine aside,
 html.theme-light-wine-pink aside,
+html.theme-light-wine header,
 html.theme-light-wine-pink header {
-  background-color: #FFF0F4 !important;
-  border-color: #FBCFE8 !important;
-  color: #4C0519 !important;
-}
-
-html.theme-light-wine-pink .bg-slate-900 {
   background-color: #FFFFFF !important;
-  border-color: #FCE7F3 !important;
-  color: #4C0519 !important;
-  box-shadow: 0 1px 3px rgba(190, 24, 93, 0.05);
+  border-color: #EADBDF !important;
+  color: #1E0A11 !important;
 }
 
+/* Card, Panel & Container Surfaces */
+html.theme-light-wine .bg-slate-900,
+html.theme-light-wine-pink .bg-slate-900,
+html.theme-light-wine .bg-slate-950,
+html.theme-light-wine-pink .bg-slate-950,
+html.theme-light-wine .bg-slate-900\/90,
+html.theme-light-wine-pink .bg-slate-900\/90,
+html.theme-light-wine .bg-slate-900\/80,
+html.theme-light-wine-pink .bg-slate-900\/80,
+html.theme-light-wine .bg-slate-900\/60,
+html.theme-light-wine-pink .bg-slate-900\/60,
+html.theme-light-wine .bg-slate-950\/90,
+html.theme-light-wine-pink .bg-slate-950\/90,
+html.theme-light-wine .bg-slate-950\/80,
 html.theme-light-wine-pink .bg-slate-950\/80,
-html.theme-light-wine-pink .bg-slate-900\/60 {
-  background-color: rgba(255, 240, 244, 0.9) !important;
-  border-color: #FBCFE8 !important;
+html.theme-light-wine .bg-slate-950\/60,
+html.theme-light-wine-pink .bg-slate-950\/60 {
+  background-color: #FFFFFF !important;
+  border-color: #EADBDF !important;
+  color: #1E0A11 !important;
+  box-shadow: 0 1px 3px rgba(114, 47, 55, 0.04);
 }
 
+/* Secondary & Pill Surfaces */
+html.theme-light-wine .bg-slate-800,
+html.theme-light-wine-pink .bg-slate-800,
+html.theme-light-wine .bg-slate-800\/80,
+html.theme-light-wine-pink .bg-slate-800\/80,
+html.theme-light-wine .bg-slate-800\/60,
+html.theme-light-wine-pink .bg-slate-800\/60 {
+  background-color: #F8F1F4 !important;
+  border-color: #EADBDF !important;
+  color: #1E0A11 !important;
+}
+
+/* Borders */
+html.theme-light-wine .border-slate-800,
 html.theme-light-wine-pink .border-slate-800,
+html.theme-light-wine .border-slate-800\/80,
 html.theme-light-wine-pink .border-slate-800\/80,
-html.theme-light-wine-pink .border-slate-700 {
-  border-color: #FCE7F3 !important;
+html.theme-light-wine .border-slate-700,
+html.theme-light-wine-pink .border-slate-700,
+html.theme-light-wine .border-slate-700\/80,
+html.theme-light-wine-pink .border-slate-700\/80 {
+  border-color: #EADBDF !important;
 }
 
+/* High-Contrast Typography */
+html.theme-light-wine .text-slate-100,
 html.theme-light-wine-pink .text-slate-100,
+html.theme-light-wine .text-slate-200,
 html.theme-light-wine-pink .text-slate-200 {
-  color: #4C0519 !important;
+  color: #1E0A11 !important;
 }
 
-html.theme-light-wine-pink .text-slate-300,
+html.theme-light-wine .text-slate-300,
+html.theme-light-wine-pink .text-slate-300 {
+  color: #381420 !important;
+}
+
+html.theme-light-wine .text-slate-400,
 html.theme-light-wine-pink .text-slate-400 {
-  color: #831843 !important;
+  color: #6B4E5A !important;
 }
 
+html.theme-light-wine .text-slate-500,
 html.theme-light-wine-pink .text-slate-500 {
-  color: #9D174D !important;
+  color: #8A6D79 !important;
 }
 
+/* Form Inputs, Dropdowns, Textareas */
+html.theme-light-wine input,
 html.theme-light-wine-pink input,
+html.theme-light-wine select,
 html.theme-light-wine-pink select,
+html.theme-light-wine textarea,
 html.theme-light-wine-pink textarea {
   background-color: #FFFFFF !important;
+  border-color: #DBC8D0 !important;
+  color: #1E0A11 !important;
+}
+
+html.theme-light-wine input::placeholder,
+html.theme-light-wine-pink input::placeholder,
+html.theme-light-wine textarea::placeholder,
+html.theme-light-wine-pink textarea::placeholder {
+  color: #9E858F !important;
+}
+
+html.theme-light-wine input:focus,
+html.theme-light-wine-pink input:focus,
+html.theme-light-wine select:focus,
+html.theme-light-wine-pink select:focus,
+html.theme-light-wine textarea:focus,
+html.theme-light-wine-pink textarea:focus {
+  border-color: #881337 !important;
+}
+
+/* Accent & Price Numbers (Dark Wine / Cognac with clear visibility) */
+html.theme-light-wine .text-amber-400,
+html.theme-light-wine-pink .text-amber-400,
+html.theme-light-wine .text-amber-300,
+html.theme-light-wine-pink .text-amber-300 {
+  color: #881337 !important;
+}
+
+html.theme-light-wine .bg-amber-500\/10,
+html.theme-light-wine-pink .bg-amber-500\/10,
+html.theme-light-wine .bg-amber-500\/15,
+html.theme-light-wine-pink .bg-amber-500\/15,
+html.theme-light-wine .bg-amber-500\/20,
+html.theme-light-wine-pink .bg-amber-500\/20 {
+  background-color: #FDF2F4 !important;
   border-color: #FBCFE8 !important;
-  color: #4C0519 !important;
+  color: #881337 !important;
+}
+
+/* Primary Action Buttons in Wine Palette with White Text */
+html.theme-light-wine button.bg-amber-500,
+html.theme-light-wine-pink button.bg-amber-500 {
+  background-color: #881337 !important;
+  color: #FFFFFF !important;
+}
+
+html.theme-light-wine button.bg-amber-500:hover,
+html.theme-light-wine-pink button.bg-amber-500:hover {
+  background-color: #9F1239 !important;
+  color: #FFFFFF !important;
+}
+
+html.theme-light-wine button.bg-amber-500 *,
+html.theme-light-wine-pink button.bg-amber-500 * {
+  color: #FFFFFF !important;
+}
+
+/* Status Badges */
+html.theme-light-wine .text-emerald-400,
+html.theme-light-wine-pink .text-emerald-400,
+html.theme-light-wine .text-emerald-300,
+html.theme-light-wine-pink .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html.theme-light-wine .bg-emerald-950\/40,
+html.theme-light-wine-pink .bg-emerald-950\/40,
+html.theme-light-wine .bg-emerald-950\/50,
+html.theme-light-wine-pink .bg-emerald-950\/50,
+html.theme-light-wine .bg-emerald-950,
+html.theme-light-wine-pink .bg-emerald-950 {
+  background-color: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #065F46 !important;
+}
+
+html.theme-light-wine .text-rose-400,
+html.theme-light-wine-pink .text-rose-400,
+html.theme-light-wine .text-red-400,
+html.theme-light-wine-pink .text-red-400 {
+  color: #BE123C !important;
+}
+
+html.theme-light-wine .bg-rose-950\/40,
+html.theme-light-wine-pink .bg-rose-950\/40,
+html.theme-light-wine .bg-rose-950\/50,
+html.theme-light-wine-pink .bg-rose-950\/50,
+html.theme-light-wine .bg-rose-950,
+html.theme-light-wine-pink .bg-rose-950 {
+  background-color: #FFF1F2 !important;
+  border-color: #FECDD3 !important;
+  color: #9F1239 !important;
+}
+
+/* Table Header & Hover States */
+html.theme-light-wine thead,
+html.theme-light-wine-pink thead {
+  background-color: #F8F1F4 !important;
+  border-color: #EADBDF !important;
+}
+
+html.theme-light-wine thead th,
+html.theme-light-wine-pink thead th {
+  color: #381420 !important;
+  border-color: #EADBDF !important;
+}
+
+html.theme-light-wine tbody tr:hover,
+html.theme-light-wine-pink tbody tr:hover {
+  background-color: #FAF2F5 !important;
 }
 
 /* White and Navy Blue Theme (Light) */
@@ -191,6 +354,125 @@ html.theme-light-navy-blue main textarea {
   .print\:hidden {
     display: none !important;
   }
+}
+
+/* POS Register Menu Cards & Components - Bulletproof Contrast across ALL themes */
+.pos-menu-card {
+  background-color: #0f172a;
+  border-color: #1e293b;
+  color: #f8fafc;
+}
+.pos-card-title {
+  color: #f8fafc;
+}
+.pos-card-desc {
+  color: #94a3b8;
+}
+.pos-card-sku {
+  color: #64748b;
+}
+.pos-card-header {
+  background-color: rgba(2, 6, 23, 0.4);
+  border-color: #1e293b;
+}
+.pos-card-footer {
+  background-color: rgba(2, 6, 23, 0.6);
+  border-color: #1e293b;
+  color: #cbd5e1;
+}
+
+/* Light Wine Theme Overrides */
+html.theme-light-wine .pos-menu-card,
+html.theme-light-wine-pink .pos-menu-card {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: #eadbdf !important;
+  box-shadow: 0 1px 4px rgba(114, 47, 55, 0.05);
+}
+html.theme-light-wine .pos-card-title,
+html.theme-light-wine-pink .pos-card-title {
+  color: #1e0a11 !important;
+  font-weight: 700 !important;
+}
+html.theme-light-wine .pos-card-desc,
+html.theme-light-wine-pink .pos-card-desc {
+  color: #4a1525 !important;
+}
+html.theme-light-wine .pos-card-sku,
+html.theme-light-wine-pink .pos-card-sku {
+  color: #7a4b5b !important;
+}
+html.theme-light-wine .pos-card-header,
+html.theme-light-wine-pink .pos-card-header {
+  background-color: #faf5f7 !important;
+  border-color: #eadbdf !important;
+}
+html.theme-light-wine .pos-card-footer,
+html.theme-light-wine-pink .pos-card-footer {
+  background-color: #faf5f7 !important;
+  border-color: #eadbdf !important;
+  color: #1e0a11 !important;
+}
+
+/* Light Ivory & Navy Themes Overrides */
+html.theme-light-ivory .pos-menu-card,
+html.theme-light-navy-blue .pos-menu-card {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+html.theme-light-ivory .pos-card-title,
+html.theme-light-navy-blue .pos-card-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+html.theme-light-ivory .pos-card-desc,
+html.theme-light-navy-blue .pos-card-desc {
+  color: #334155 !important;
+}
+html.theme-light-ivory .pos-card-sku,
+html.theme-light-navy-blue .pos-card-sku {
+  color: #64748b !important;
+}
+html.theme-light-ivory .pos-card-header,
+html.theme-light-navy-blue .pos-card-header,
+html.theme-light-ivory .pos-card-footer,
+html.theme-light-navy-blue .pos-card-footer {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Image overlay typography: MUST remain bright white and gold on top of dark image overlay */
+html.theme-light-wine .pos-image-category,
+html.theme-light-wine-pink .pos-image-category,
+html.theme-light-ivory .pos-image-category,
+html.theme-light-navy-blue .pos-image-category {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+html.theme-light-wine .pos-image-price,
+html.theme-light-wine-pink .pos-image-price,
+html.theme-light-ivory .pos-image-price,
+html.theme-light-navy-blue .pos-image-price {
+  color: #fcd34d !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Kitchen & Chef Display Light Mode Cards */
+html.theme-light-wine .kitchen-ticket-card,
+html.theme-light-wine-pink .kitchen-ticket-card {
+  background-color: #ffffff !important;
+  border-color: #eadbdf !important;
+  box-shadow: 0 2px 6px rgba(114, 47, 55, 0.06);
+}
+
+html.theme-light-ivory .kitchen-ticket-card,
+html.theme-light-navy-blue .kitchen-ticket-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
 }
 
 

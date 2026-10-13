@@ -26,11 +26,33 @@ function loadLocalCache(): CloudSystemState {
     const raw = localStorage.getItem(LOCAL_STATE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as CloudSystemState;
-      if (!parsed.settings) parsed.settings = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.settings));
+      if (!parsed.settings) {
+        parsed.settings = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.settings));
+      } else if (parsed.settings.theme === 'dark_luxe' || !parsed.settings.theme) {
+        parsed.settings.theme = 'light_wine_pink';
+      }
       if (!parsed.users || parsed.users.length === 0) parsed.users = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.users));
       if (!parsed.activeUserId) parsed.activeUserId = INITIAL_CLOUD_STATE.activeUserId;
       if (!parsed.suppliers || parsed.suppliers.length === 0) parsed.suppliers = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.suppliers));
       if (!parsed.purchaseOrders || parsed.purchaseOrders.length === 0) parsed.purchaseOrders = JSON.parse(JSON.stringify(INITIAL_CLOUD_STATE.purchaseOrders));
+      // Ensure newly added non-recipe ingredients exist in cached state
+      if (parsed.ingredients && INITIAL_CLOUD_STATE.ingredients) {
+        for (const defaultIng of INITIAL_CLOUD_STATE.ingredients) {
+          if (!parsed.ingredients.some((i) => i.id === defaultIng.id)) {
+            parsed.ingredients.push(JSON.parse(JSON.stringify(defaultIng)));
+          }
+        }
+      }
+      // Ensure default non-recipe menu items link to their inventory SKUs
+      if (parsed.menuItems && INITIAL_CLOUD_STATE.menuItems) {
+        for (const defaultItem of INITIAL_CLOUD_STATE.menuItems) {
+          const cachedItem = parsed.menuItems.find((m) => m.id === defaultItem.id);
+          if (cachedItem && defaultItem.directStockIngredientId && !cachedItem.directStockIngredientId) {
+            cachedItem.directStockIngredientId = defaultItem.directStockIngredientId;
+            cachedItem.directStockUnitsPerSale = defaultItem.directStockUnitsPerSale;
+          }
+        }
+      }
       return parsed;
     }
   } catch (e) {

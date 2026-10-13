@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Calculator,
+  ChefHat,
   Clock,
   KeyRound,
   Lock,
@@ -24,6 +25,7 @@ interface TopHeaderProps {
   onOpenSwitchUser: () => void;
   onOpenUserProfile?: () => void;
   onOpenCalculator?: () => void;
+  onOpenKitchen?: () => void;
   onLogout?: () => void;
   onQuickPrint?: () => void;
   isOnline: boolean;
@@ -37,11 +39,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenSwitchUser,
   onOpenUserProfile,
   onOpenCalculator,
+  onOpenKitchen,
   onLogout,
   onQuickPrint,
   isOnline,
 }) => {
   const [currentTime, setCurrentTime] = useState<string>(new Date().toISOString());
+
+  const activeKitchenCount =
+    state.kitchenTickets?.filter(
+      (t) => t.status === 'pending' || t.status === 'preparing'
+    ).length || 0;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,6 +62,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     switch (m) {
       case 'pos':
         return 'Point of Sale';
+      case 'kitchen':
+        return 'Kitchen Display System (Chef Screen)';
+      case 'categories':
+        return 'Menu Categories & Organization';
+      case 'raw_ingredients':
+        return 'Raw Ingredients Ledger & Stock';
+      case 'recipe_products':
+        return 'Recipe Products & BOM Engineering';
+      case 'non_recipe_products':
+        return 'Non-Recipe Products & Bottle Service';
       case 'calculator':
         return 'Lounge & Bar Calculator';
       case 'daily_recipes':
@@ -63,7 +81,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       case 'purchase_orders':
         return 'Purchase Orders & Suppliers';
       case 'analytics':
-        return 'Analytics & Sales Reporting';
+        return 'Sales Reports & Executive Analytics';
       case 'eod':
         return 'End-of-Day Reconciliation (Z-Report)';
       case 'crm':
@@ -78,7 +96,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <header className="h-16 px-4 sm:px-6 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-30 print:hidden">
+    <header className="h-14 px-3.5 sm:px-5 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between sticky top-0 z-30 print:hidden">
       {/* Left: Mobile Hamburger & Contextual Breadcrumb */}
       <div className="flex items-center gap-3">
         <button
@@ -102,20 +120,46 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Station Clock, Calculator, Print Shortcut, Active Staff Chip */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* Right: Station Clock, Calculator, Kitchen KDS, Print Shortcut, Active Staff Chip */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
         {/* Real-time Clock */}
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono tabular-nums text-slate-300">
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono tabular-nums text-slate-300">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
           <span>{formatDateTime(currentTime, state.settings.time)}</span>
         </div>
+
+        {/* Kitchen Chef Screen Shortcut */}
+        {onOpenKitchen && (
+          <button
+            type="button"
+            onClick={onOpenKitchen}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
+              activeModule === 'kitchen'
+                ? 'bg-amber-500 text-slate-950 border-amber-400 font-semibold shadow-xs'
+                : 'text-slate-200 bg-slate-900 hover:bg-slate-800 border-slate-800'
+            }`}
+            title="Open Kitchen & Chef Display System"
+          >
+            <ChefHat className={`w-3.5 h-3.5 ${activeModule === 'kitchen' ? 'text-slate-950' : 'text-amber-400'}`} />
+            <span className="hidden sm:inline">Kitchen</span>
+            {activeKitchenCount > 0 && (
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                activeModule === 'kitchen'
+                  ? 'bg-slate-950 text-amber-400'
+                  : 'bg-amber-500 text-slate-950'
+              }`}>
+                {activeKitchenCount}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Quick Calculator Action */}
         {onOpenCalculator && (
           <button
             type="button"
             onClick={onOpenCalculator}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
               activeModule === 'calculator'
                 ? 'bg-amber-500 text-slate-950 border-amber-400 font-semibold'
                 : 'text-slate-200 bg-slate-900 hover:bg-slate-800 border-slate-800'
