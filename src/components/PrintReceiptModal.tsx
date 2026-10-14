@@ -190,7 +190,7 @@ export const PrintReceiptModal: React.FC<PrintReceiptModalProps> = ({
                   <span>{formatCurrency(content.order.taxAmount, settings.currency)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-sm border-t border-neutral-800 pt-1.5 mt-1">
-                  <span>TOTAL DUE:</span>
+                  <span>TOTAL PAID:</span>
                   <span>{formatCurrency(content.order.totalAmount, settings.currency)}</span>
                 </div>
                 <div className="flex justify-between text-[10px] pt-1 text-neutral-600">
@@ -214,42 +214,10 @@ export const PrintReceiptModal: React.FC<PrintReceiptModalProps> = ({
                 )}
               </div>
 
-              {/* Optional Recipe Ingredient Deductions on Receipt */}
-              {settings.print.showIngredientDeductionsOnReceipt &&
-                content.order.deductions.length > 0 && (
-                  <div className="pt-2 border-t border-dashed border-neutral-300 space-y-1 text-[9px] text-neutral-600">
-                    <div className="font-bold text-[10px] text-neutral-800">
-                      AUTOMATED RECIPE STOCK DEDUCTION AUDIT:
-                    </div>
-                    {content.order.deductions.map((ded) => (
-                      <div key={ded.ingredientId} className="flex justify-between">
-                        <span>{ded.ingredientName}</span>
-                        <span>
-                          -{ded.quantityDeducted}
-                          {ded.unit} (Bal: {ded.remainingStockAfter}
-                          {ded.unit})
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              {/* Tip / Signature lines */}
-              <div className="pt-4 border-t border-dashed border-neutral-300 space-y-3 text-[10px]">
-                <div className="flex justify-between">
-                  <span>Additional Tip:</span>
-                  <span className="border-b border-neutral-400 w-28 inline-block"></span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total Paid:</span>
-                  <span className="border-b border-neutral-400 w-28 inline-block"></span>
-                </div>
-                <div className="pt-2">
-                  <div className="border-b border-neutral-400 w-full mb-1"></div>
-                  <div className="text-center text-[9px] text-neutral-500">
-                    Guest Signature / Cardholder Verification
-                  </div>
-                </div>
+              {/* Thank you footer */}
+              <div className="pt-3 border-t border-dashed border-neutral-300 text-center space-y-1 text-[10px] text-neutral-500">
+                <p className="font-semibold text-neutral-700">Thank you for dining with us!</p>
+                <p className="text-[9px]">Please retain this receipt for your records.</p>
               </div>
             </div>
           )}

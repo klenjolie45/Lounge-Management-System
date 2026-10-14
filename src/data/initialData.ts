@@ -43,7 +43,7 @@ export const DEFAULT_SETTINGS: GeneralSystemSettings = {
     paperSize: 'thermal_80mm',
     autoPrintReceiptOnSale: false,
     showLogoOnReceipt: true,
-    showIngredientDeductionsOnReceipt: true,
+    showIngredientDeductionsOnReceipt: false,
     receiptHeaderTitle: 'KOFLY LOUNGE & BISTRO',
     receiptSubheader: 'Craft Mixology & Culinary Bar',
     receiptFooterText: 'Thank you for dining with us at Kofly Lounge.',

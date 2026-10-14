@@ -1212,7 +1212,7 @@ export const PosTerminalView: React.FC<PosTerminalViewProps> = ({
             <span className="font-mono tabular-nums">{formatCurrency(orderTotals.taxAmount, state.settings?.currency)}</span>
           </div>
           <div className="flex justify-between text-sm font-semibold text-slate-100 pt-2 border-t border-slate-800">
-            <span>Total Due</span>
+            <span>Total Paid</span>
             <span className="font-mono tabular-nums text-amber-400">
               {formatCurrency(orderTotals.totalAmount, state.settings?.currency)}
             </span>

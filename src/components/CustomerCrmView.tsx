@@ -1,7 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import {
   Award,
+  Check,
   CreditCard,
+  Edit2,
+  Mail,
+  Phone,
   Plus,
   Search,
   Sparkles,
@@ -43,6 +47,17 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
   const [newSeating, setNewSeating] = useState('Booth 02 · Amber Alcove');
   const [newDietary, setNewDietary] = useState('');
   const [newFavorite, setNewFavorite] = useState('Smoked Bourbon Old Fashioned');
+
+  // Edit existing customer modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<CustomerProfile | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editTier, setEditTier] = useState<CustomerTier>('Gold Reserve');
+  const [editSeating, setEditSeating] = useState('');
+  const [editDietary, setEditDietary] = useState('');
+  const [editFavorite, setEditFavorite] = useState('');
 
   const filteredCustomers = useMemo(() => {
     return state.customers.filter((c) => {
@@ -125,6 +140,57 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
         updates: { loyaltyPoints: cust.loyaltyPoints + pts },
       },
       `Granted +${pts} hospitality loyalty points to ${cust.name}`
+    );
+  };
+
+  const openEditModal = (cust: CustomerProfile) => {
+    setEditingCustomer(cust);
+    setEditName(cust.name);
+    setEditEmail(cust.email);
+    setEditPhone(cust.phone);
+    setEditTier(cust.tier);
+    setEditSeating(cust.seatingPreference || '');
+    setEditDietary(cust.dietaryNotes || '');
+    setEditFavorite(cust.favoriteItem || '');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer || !editName.trim()) return;
+
+    const updates: Partial<CustomerProfile> = {
+      name: editName.trim(),
+      email: editEmail.trim() || 'guest@loungepatron.io',
+      phone: editPhone.trim() || '+1 (415) 555-0192',
+      tier: editTier,
+      seatingPreference: editSeating.trim() || 'Lounge Area',
+      favoriteItem: editFavorite.trim() || 'None specified',
+      dietaryNotes: editDietary.trim() || 'None specified.',
+    };
+
+    await onDispatch(
+      'UPDATE_CUSTOMER',
+      {
+        customerId: editingCustomer.id,
+        updates,
+      },
+      `Updated profile & contact for ${updates.name} (${updates.tier})`
+    );
+
+    setShowEditModal(false);
+    setEditingCustomer(null);
+  };
+
+  const handleQuickChangeTier = async (cust: CustomerProfile, nextTier: CustomerTier) => {
+    if (cust.tier === nextTier) return;
+    await onDispatch(
+      'UPDATE_CUSTOMER',
+      {
+        customerId: cust.id,
+        updates: { tier: nextTier },
+      },
+      `Updated membership tier to ${nextTier} for ${cust.name}`
     );
   };
 
@@ -236,6 +302,7 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                   <th className="py-3 px-4 font-medium text-right">Lifetime Spend</th>
                   <th className="py-3 px-4 font-medium text-right">Loyalty Points</th>
                   <th className="py-3 px-4 font-medium text-right">House Balance</th>
+                  <th className="py-3 px-3 font-medium text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/70 text-xs">
@@ -279,6 +346,19 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                       <td className="py-3 px-4 text-right font-mono tabular-nums text-slate-300">
                         {formatCurrency(cust.houseAccountBalance, state.settings?.currency)}
                       </td>
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(cust);
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition-colors cursor-pointer"
+                          title={`Edit membership & contact for ${cust.name}`}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -303,14 +383,82 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => onStartOrderForCustomer(activeCustomer)}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg whitespace-nowrap cursor-pointer"
-              >
-                <UtensilsCrossed className="w-3.5 h-3.5" />
-                <span>Open POS Ticket</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openEditModal(activeCustomer)}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 rounded-lg whitespace-nowrap cursor-pointer transition-colors"
+                  title="Edit Membership Tier and Contact Information"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Edit Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onStartOrderForCustomer(activeCustomer)}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg whitespace-nowrap cursor-pointer shadow-xs"
+                >
+                  <UtensilsCrossed className="w-3.5 h-3.5" />
+                  <span>Open POS Ticket</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Editable Membership & Contact Information Dossier Card */}
+            <div className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 space-y-3 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  VIP Membership & Contact
+                </span>
+                <button
+                  type="button"
+                  onClick={() => openEditModal(activeCustomer)}
+                  className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <Edit2 className="w-3 h-3" />
+                  <span>Edit Details</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">Membership Tier</span>
+                    <select
+                      value={activeCustomer.tier}
+                      onChange={(e) => handleQuickChangeTier(activeCustomer, e.target.value as CustomerTier)}
+                      className="text-[11px] font-semibold bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-amber-400 cursor-pointer focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="Obsidian VIP">Obsidian VIP (10% Off)</option>
+                      <option value="Gold Reserve">Gold Reserve (5% Off)</option>
+                      <option value="Silver Patron">Silver Patron</option>
+                      <option value="Standard Guest">Standard Guest</option>
+                    </select>
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-1 font-mono">
+                    Benefit:{' '}
+                    {activeCustomer.tier === 'Obsidian VIP'
+                      ? '10% Tier Discount on POS'
+                      : activeCustomer.tier === 'Gold Reserve'
+                      ? '5% Tier Discount on POS'
+                      : 'Standard Pricing'}
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 space-y-1">
+                  <span className="text-[11px] text-slate-400 block">Contact Information</span>
+                  <div className="flex items-center gap-1.5 text-slate-200 font-mono text-[11px] truncate">
+                    <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{activeCustomer.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-200 font-mono text-[11px] truncate">
+                    <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{activeCustomer.email}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5 text-center">
@@ -526,6 +674,143 @@ export const CustomerCrmView: React.FC<CustomerCrmViewProps> = ({
                 className="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg cursor-pointer"
               >
                 Save Guest Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal: Edit VIP Guest Profile & Contact */}
+      {showEditModal && editingCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 animate-fadeIn">
+          <form
+            onSubmit={handleUpdateCustomer}
+            className="w-full max-w-md rounded-xl bg-slate-900 border border-slate-800 p-6 space-y-4 shadow-2xl"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-semibold text-slate-100 flex items-center gap-2">
+                  <Edit2 className="w-4 h-4 text-amber-400" />
+                  <span>Edit VIP Guest Profile</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Update membership tier, loyalty discount & contact info
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingCustomer(null);
+                }}
+                className="text-slate-400 hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Guest Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Email Address</label>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    placeholder="guest@domain.com"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Phone / Mobile</label>
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="+1 (415) 555-0199"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Membership Tier</label>
+                  <select
+                    value={editTier}
+                    onChange={(e) => setEditTier(e.target.value as CustomerTier)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500 font-medium"
+                  >
+                    <option value="Obsidian VIP">Obsidian VIP (10% Tier Discount)</option>
+                    <option value="Gold Reserve">Gold Reserve (5% Tier Discount)</option>
+                    <option value="Silver Patron">Silver Patron (Privilege Access)</option>
+                    <option value="Standard Guest">Standard Guest</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-300 mb-1 font-medium">Seating Preference</label>
+                  <input
+                    type="text"
+                    value={editSeating}
+                    onChange={(e) => setEditSeating(e.target.value)}
+                    placeholder="e.g., Booth 02 · Amber Alcove"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">Signature Cocktail / Favorite Dish</label>
+                <input
+                  type="text"
+                  value={editFavorite}
+                  onChange={(e) => setEditFavorite(e.target.value)}
+                  placeholder="e.g., Smoked Bourbon Old Fashioned"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-1 font-medium">
+                  Hospitality & Dietary Notes
+                </label>
+                <input
+                  type="text"
+                  value={editDietary}
+                  onChange={(e) => setEditDietary(e.target.value)}
+                  placeholder="e.g., Nut allergy, prefers corner booth"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingCustomer(null);
+                }}
+                className="px-4 py-2 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 text-xs font-semibold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg cursor-pointer transition-colors shadow-xs"
+              >
+                Save VIP Profile Changes
               </button>
             </div>
           </form>
